@@ -3,6 +3,8 @@ from collections import defaultdict
 from dotenv import load_dotenv
 import os
 from pyzotero.zotero import Zotero
+from dataclass import dataclass
+from typing import List
 
 # Load environment variables
 load_dotenv('secrets.env')
@@ -22,6 +24,30 @@ COLORS = dict(
     purple="#a28ae5",
 )
 HEX_to_COLOR = {v: k for k, v in COLORS.items()}
+
+
+class ZoteroItem:
+    pass
+
+@dataclass
+class Annotation:
+    """
+    Except for the parentItem, all other argument name and type are the same as the Zotero API parameters.
+    """
+    parentItem: ZoteroItem
+    version: int
+    itemType: str
+    annotationType: str
+    annotationText: str
+    annotationComment: str
+    annotationColor: str
+    annotationPageLabel: str
+    annotationSortIndex: str
+    annoationPosition: str
+    tags: List
+    dateAdded: str
+    dateModified: str
+
 
 
 with open('all_items.json', 'w') as f:
