@@ -1,0 +1,5 @@
+.idea/
+*.env
+.ipynb_checkpoints
+*.json
+*.pyc

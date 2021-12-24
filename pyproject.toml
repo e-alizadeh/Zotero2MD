@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "zotero_to_obsidian"
+version = "0.1.0"
+description = ""
+authors = ["ealizadeh <hello@ealizadeh.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+Pyzotero = "^1.4.26"
+SnakeMD = "^0.9.3"
+python-dotenv = "^0.19.2"
+
+[tool.poetry.dev-dependencies]
+ipython = "^7.30.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
