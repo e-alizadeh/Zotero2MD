@@ -53,7 +53,7 @@ def format_highlight(highlight: Dict) -> str:
     # zotero_unique_id = f"(key={highlight['key']}, version={highlight['version']})"
     return (
         f"{data['annotationText']} "
-        f"({data['annotationPageLabel']})" 
+        f"(Page {data['annotationPageLabel']})" 
         f"<!--(Highlighted on {data['dateAdded']})-->"
         # f"<!---->"
     )
@@ -61,16 +61,49 @@ def format_highlight(highlight: Dict) -> str:
 
 def create_highlights_section(doc: Document, highlights: List) -> None:
     doc.add_header(level=1, text="Highlights")
-    
     doc.add_unordered_list(
         format_highlight(h) for h in highlights
     )
 
 
+def format_tags(tags: List[str], internal_link: bool = True) -> str:
+    if internal_link:
+        return " ".join([f"[[{tag}]]" for tag in tags])
+    else:
+        return " ".join([f"#{tag}" for tag in tags])
+
+def create_metadata_section(doc: Document, metadata: Dict, is_tag_internal_link = True) -> None:
+    doc.add_header(level=1, text="Metadata")
+    authors = metadata.get('creators', None)
+
+    output: List = []
+
+    if len(authors) == 1:
+        output.append(f"Author: {authors[0]}")
+    elif 1 < len(authors) <= 5:
+        output.append(f"Authors: {', '.join(authors)}")
+    elif len(authors) > 5:
+        output.append(f"Authors: {authors[0]} et al.")
+
+    if metadata.get('date', None):
+        output.append(f"Date: {metadata['date']}")
+    
+    tags = metadata.get('tags', None)
+
+    if tags:
+        output.append(format_tags(tags, is_tag_internal_link))
+
+
+
+    doc.add_unordered_list(
+        [
+            
+        ]
+    )
 
 d = group_annotations_by_parent_file(all_annotations)
-# item_key = "UIBHCUP6"
-item_key = 'N69RPVEF'
+item_key = "UIBHCUP6"
+# item_key = 'N69RPVEF'
 item_highlights = d[item_key]
 item_details = zot.item(item_key)
 
@@ -100,6 +133,6 @@ metadata = get_item_metadata(item_details)
 doc = Document(metadata["title"])
 
 # doc.add_element()
-# doc.add_header(level=1, text="Metadata")
+doc.add_header(level=1, text="Metadata")
 
 create_highlights_section(doc, item_highlights)
