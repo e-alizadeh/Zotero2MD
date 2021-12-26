@@ -2,11 +2,12 @@ import json
 import os
 
 # from dataclass import dataclass
-from typing import Dict, List
+from enum import Enum
+from typing import Dict, List, Tuple, Union
 
 from dotenv import load_dotenv
 from pyzotero.zotero import Zotero
-from snakemd import Document
+from snakemd import Document, InlineText, MDList, Paragraph
 
 # Load environment variables
 from zt2md.utils import group_annotations_by_parent_file
@@ -19,14 +20,19 @@ zot = Zotero(
     api_key=os.environ["ZOTERO_API_KEY"],
 )
 all_annotations = zot.everything(zot.items(itemType="annotation"))
-# all_notes = zot.everything(zot.items(itemType="note"))
+all_notes = zot.everything(zot.items(itemType="note"))
 # all_items = zot.everything(zot.all_top())
 
 with open("../all_annotations.json", "w") as f:
     json.dump(all_annotations, f)
-#
+
+with open("../all_notes.json", "w") as f:
+    json.dump(all_notes, f)
+
 with open("../all_annotations.json", "r") as f:
     all_annotations = json.load(f)
+with open("../all_notes.json", "r") as f:
+    all_notes = json.load(f)
 
 COLORS = dict(
     red="#ff6666",
@@ -100,23 +106,47 @@ class ItemAnnotations(ZoteroItemBase):
             name="initial_filename"
         )  # the filename will be updated later!
 
-    def format_highlight(self, highlight: Dict) -> str:
+    def format_annotation(self, highlight: Dict) -> Union[Tuple, Paragraph]:
         data = highlight["data"]
         # zotero_unique_id = f"(key={highlight['key']}, version={highlight['version']})"
-        return (
-            f"{data['annotationText']} "
-            f"(Page {data['annotationPageLabel']})"
-            f"<!--(Highlighted on {data['dateAdded']})-->"
-            # f"<!---->"
-        )
+        if data["annotationType"] == "note":
+            return Paragraph(
+                f"{data['annotationComment']} "
+                f"(Page {data['annotationPageLabel']})"
+                f"<!--(Highlighted on {data['dateModified']})-->"
+                # f"<!---->"
+            )
+        elif data["annotationType"] == "highlight":
+            annot_text = Paragraph(
+                f"{data['annotationText']} "
+                f"(Page {data['annotationPageLabel']})"
+                f"<!--(Highlighted on {data['dateAdded']})-->"
+                # f"<!---->"
+            )
+            if data.get("annotationComment", "") == "":
+                return annot_text
+            else:
+                annot_comment = MDList([f"**Comment**: {data['annotationComment']}"])
+                return (annot_text, annot_comment)
+        else:
+            return Paragraph("")
 
     def create_metadata_section(self, metadata: Dict) -> None:
         self.doc.add_header(level=1, text="Metadata")
-        self.doc.add_unordered_list(self.format_metadata(metadata))
+        self.doc.add_element(MDList(self.format_metadata(metadata)))
 
-    def create_highlights_section(self, highlights: List) -> None:
+    def create_annotations_section(self, highlights: List) -> None:
         self.doc.add_header(level=1, text="Highlights")
-        self.doc.add_unordered_list(self.format_highlight(h) for h in highlights)
+        annots = []
+        for h in highlights:
+            formatted_annotation = self.format_annotation(h)
+            if isinstance(formatted_annotation, tuple):
+                annots.append(formatted_annotation[0])
+                annots.append(formatted_annotation[1])
+            else:
+                annots.append(formatted_annotation)
+
+        self.doc.add_element(MDList(annots))
 
     def generate_output(self):
         d = group_annotations_by_parent_file(all_annotations)
@@ -125,7 +155,7 @@ class ItemAnnotations(ZoteroItemBase):
         metadata = self.get_item_metadata(item_details)
 
         self.create_metadata_section(metadata)
-        self.create_highlights_section(item_highlights)
+        self.create_annotations_section(item_highlights)
 
         output_filename = metadata["title"]
         self.doc._name = output_filename
@@ -135,7 +165,13 @@ class ItemAnnotations(ZoteroItemBase):
 
 # def create_md_doc(highlights, notes, metadata, frontmatter) -> None:
 
-# item_key = "UIBHCUP6"
-item_key = "N69RPVEF"
+if __name__ == "__main__":
+    highlights = group_annotations_by_parent_file(all_annotations)
+    notes = group_annotations_by_parent_file(all_notes)
+    note = "WS2V4TWS"
+    last_note = notes[note]
+    # item_key = "UIBHCUP6"
+    item_key = "N69RPVEF"
 
-a = ItemAnnotations(item_key)
+    a = ItemAnnotations(item_key)
+    a.generate_output()
