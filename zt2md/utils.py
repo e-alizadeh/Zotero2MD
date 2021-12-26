@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import List, Dict
+from typing import Dict, List
 
 
 def group_annotations_by_parent_file(annotations: List[Dict]) -> defaultdict:
