@@ -16,7 +16,7 @@ load_dotenv("./secrets.env")
 zot = Zotero(
     library_id=os.environ["LIBRARY_ID"],
     library_type="user",
-    api_key=os.environ["API_KEY"],
+    api_key=os.environ["ZOTERO_API_KEY"],
 )
 all_annotations = zot.everything(zot.items(itemType="annotation"))
 # all_notes = zot.everything(zot.items(itemType="note"))
