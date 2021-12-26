@@ -11,12 +11,17 @@ from snakemd import Document
 # Load environment variables
 load_dotenv('secrets.env')
 
+
 zot = Zotero(library_id=os.environ["LIBRARY_ID"], library_type="user", api_key=os.environ["API_KEY"])
-
-all_items = zot.everything(zot.all_top())
-
 all_annotations = zot.everything(zot.items(itemType="annotation"))
-all_notes = zot.everything(zot.items(itemType="note"))
+# all_notes = zot.everything(zot.items(itemType="note"))
+# all_items = zot.everything(zot.all_top())
+
+with open('all_annotations.json', 'w') as f:
+    json.dump(all_annotations, f)
+#
+with open('all_annotations.json', 'r') as f:
+    all_annotations = json.load(f)
 
 COLORS = dict(
     red="#ff6666",
@@ -28,24 +33,11 @@ COLORS = dict(
 HEX_to_COLOR = {v: k for k, v in COLORS.items()}
 
 
-with open('all_annotations.json', 'w') as f:
-    json.dump(all_annotations, f)
-#
-with open('all_annotations.json', 'r') as f:
-    data = json.load(f)
-
 def group_annotations_by_parent_file(annotations: List[Dict]) -> defaultdict:
     annotations_by_parent = defaultdict(list)
     for annot in annotations:
         annotations_by_parent[annot["data"]["parentItem"]].append(annot)
     return annotations_by_parent
-
-
-counts = {}
-for item in all_items:
-    item_type = item['data']['itemType']
-    counts[item_type] = counts.get(item_type, 0) + 1
-
 
 
 def format_highlight(highlight: Dict) -> str:
@@ -72,11 +64,13 @@ def format_tags(tags: List[str], internal_link: bool = True) -> str:
     else:
         return " ".join([f"#{tag}" for tag in tags])
 
+
 def create_metadata_section(doc: Document, metadata: Dict, is_tag_internal_link = True) -> None:
     doc.add_header(level=1, text="Metadata")
-    authors = metadata.get('creators', None)
 
     output: List = []
+
+    authors = metadata.get('creators', None)
 
     if len(authors) == 1:
         output.append(f"Author: {authors[0]}")
@@ -93,19 +87,14 @@ def create_metadata_section(doc: Document, metadata: Dict, is_tag_internal_link 
     if tags:
         output.append(format_tags(tags, is_tag_internal_link))
 
-
-
-    doc.add_unordered_list(
-        [
-            
-        ]
-    )
+    doc.add_unordered_list(output)
 
 d = group_annotations_by_parent_file(all_annotations)
-item_key = "UIBHCUP6"
-# item_key = 'N69RPVEF'
+# item_key = "UIBHCUP6"
+item_key = 'N69RPVEF'
 item_highlights = d[item_key]
 item_details = zot.item(item_key)
+
 
 def get_item_metadata(item_details: Dict) -> Dict:
     if "parentItem" in item_details['data']:
@@ -131,8 +120,6 @@ metadata = get_item_metadata(item_details)
 # def create_md_doc(highlights, notes, metadata, frontmatter) -> None:
 
 doc = Document(metadata["title"])
-
-# doc.add_element()
-doc.add_header(level=1, text="Metadata")
-
+create_metadata_section(doc, metadata)
 create_highlights_section(doc, item_highlights)
+doc.output_page()
