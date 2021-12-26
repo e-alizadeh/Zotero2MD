@@ -1,27 +1,31 @@
 import json
-from dotenv import load_dotenv
 import os
-from pyzotero.zotero import Zotero
+
 # from dataclass import dataclass
 from typing import Dict, List
 
+from dotenv import load_dotenv
+from pyzotero.zotero import Zotero
 from snakemd import Document
 
 # Load environment variables
 from zt2md.utils import group_annotations_by_parent_file
 
-load_dotenv('../secrets.env')
+load_dotenv("../secrets.env")
 
-
-zot = Zotero(library_id=os.environ["LIBRARY_ID"], library_type="user", api_key=os.environ["API_KEY"])
+zot = Zotero(
+    library_id=os.environ["LIBRARY_ID"],
+    library_type="user",
+    api_key=os.environ["API_KEY"],
+)
 all_annotations = zot.everything(zot.items(itemType="annotation"))
 # all_notes = zot.everything(zot.items(itemType="note"))
 # all_items = zot.everything(zot.all_top())
 
-with open('../all_annotations.json', 'w') as f:
+with open("../all_annotations.json", "w") as f:
     json.dump(all_annotations, f)
 #
-with open('../all_annotations.json', 'r') as f:
+with open("../all_annotations.json", "r") as f:
     all_annotations = json.load(f)
 
 COLORS = dict(
@@ -39,17 +43,20 @@ class ZoteroItemBase:
         self.zotero: Zotero = zot
 
     def get_item_metadata(self, item_details: Dict) -> Dict:
-        if "parentItem" in item_details['data']:
-            top_parent_item = self.zotero.item(item_details['data']['parentItem'])
+        if "parentItem" in item_details["data"]:
+            top_parent_item = self.zotero.item(item_details["data"]["parentItem"])
             data = top_parent_item["data"]
             metadata = {
                 "title": data["title"],
                 "date": data["date"],
-                "creators": [creator["firstName"] + " " + creator["lastName"] for creator in data["creators"]],
+                "creators": [
+                    creator["firstName"] + " " + creator["lastName"]
+                    for creator in data["creators"]
+                ],
                 "tags": data["tags"],
             }
         else:
-            data = item_details['data']
+            data = item_details["data"]
             metadata = {
                 "title": data["title"],
                 "tags": data["tags"],
@@ -59,11 +66,11 @@ class ZoteroItemBase:
 
 
 def format_highlight(highlight: Dict) -> str:
-    data = highlight['data']
+    data = highlight["data"]
     # zotero_unique_id = f"(key={highlight['key']}, version={highlight['version']})"
     return (
         f"{data['annotationText']} "
-        f"(Page {data['annotationPageLabel']})" 
+        f"(Page {data['annotationPageLabel']})"
         f"<!--(Highlighted on {data['dateAdded']})-->"
         # f"<!---->"
     )
@@ -71,9 +78,7 @@ def format_highlight(highlight: Dict) -> str:
 
 def create_highlights_section(doc: Document, highlights: List) -> None:
     doc.add_header(level=1, text="Highlights")
-    doc.add_unordered_list(
-        format_highlight(h) for h in highlights
-    )
+    doc.add_unordered_list(format_highlight(h) for h in highlights)
 
 
 def format_tags(tags: List[str], internal_link: bool = True) -> str:
@@ -83,12 +88,14 @@ def format_tags(tags: List[str], internal_link: bool = True) -> str:
         return " ".join([f"#{tag}" for tag in tags])
 
 
-def create_metadata_section(doc: Document, metadata: Dict, is_tag_internal_link = True) -> None:
+def create_metadata_section(
+    doc: Document, metadata: Dict, is_tag_internal_link=True
+) -> None:
     doc.add_header(level=1, text="Metadata")
 
     output: List = []
 
-    authors = metadata.get('creators', None)
+    authors = metadata.get("creators", None)
 
     if len(authors) == 1:
         output.append(f"Author: {authors[0]}")
@@ -97,41 +104,46 @@ def create_metadata_section(doc: Document, metadata: Dict, is_tag_internal_link 
     elif len(authors) > 5:
         output.append(f"Authors: {authors[0]} et al.")
 
-    if metadata.get('date', None):
+    if metadata.get("date", None):
         output.append(f"Date: {metadata['date']}")
-    
-    tags = metadata.get('tags', None)
+
+    tags = metadata.get("tags", None)
 
     if tags:
         output.append(format_tags(tags, is_tag_internal_link))
 
     doc.add_unordered_list(output)
 
+
 d = group_annotations_by_parent_file(all_annotations)
 # item_key = "UIBHCUP6"
-item_key = 'N69RPVEF'
+item_key = "N69RPVEF"
 item_highlights = d[item_key]
 item_details = zot.item(item_key)
 
 
 def get_item_metadata(item_details: Dict) -> Dict:
-    if "parentItem" in item_details['data']:
-        top_parent_item = zot.item(item_details['data']['parentItem'])
+    if "parentItem" in item_details["data"]:
+        top_parent_item = zot.item(item_details["data"]["parentItem"])
         data = top_parent_item["data"]
         metadata = {
             "title": data["title"],
             "date": data["date"],
-            "creators": [creator["firstName"] + " " + creator["lastName"] for creator in data["creators"]],
+            "creators": [
+                creator["firstName"] + " " + creator["lastName"]
+                for creator in data["creators"]
+            ],
             "tags": data["tags"],
         }
     else:
-        data = item_details['data']
+        data = item_details["data"]
         metadata = {
             "title": data["title"],
             "tags": data["tags"],
         }
 
     return metadata
+
 
 metadata = get_item_metadata(item_details)
 

@@ -7,6 +7,9 @@ repos:
     rev: v5.6.4
     hooks:
     -   id: isort
+        args:
+            - --profile
+            - black
 -   repo: https://github.com/ambv/black
     rev: 20.8b1
     hooks:
