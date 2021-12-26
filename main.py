@@ -33,6 +33,30 @@ COLORS = dict(
 HEX_to_COLOR = {v: k for k, v in COLORS.items()}
 
 
+class ZoteroItemBase:
+    def __init__(self):
+        self.zotero: Zotero = zot
+
+    def get_item_metadata(self, item_details: Dict) -> Dict:
+        if "parentItem" in item_details['data']:
+            top_parent_item = self.zotero.item(item_details['data']['parentItem'])
+            data = top_parent_item["data"]
+            metadata = {
+                "title": data["title"],
+                "date": data["date"],
+                "creators": [creator["firstName"] + " " + creator["lastName"] for creator in data["creators"]],
+                "tags": data["tags"],
+            }
+        else:
+            data = item_details['data']
+            metadata = {
+                "title": data["title"],
+                "tags": data["tags"],
+            }
+
+        return metadata
+
+
 def group_annotations_by_parent_file(annotations: List[Dict]) -> defaultdict:
     annotations_by_parent = defaultdict(list)
     for annot in annotations:
