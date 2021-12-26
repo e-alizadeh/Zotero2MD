@@ -2,8 +2,27 @@
 name = "zotero_to_markdown"
 version = "0.1.0"
 description = ""
+readme = "README.md"
 authors = ["ealizadeh <hello@ealizadeh.com>"]
+homepage = "https://github.com/e-alizadeh/Zotero2MD"
+repository = "https://github.com/e-alizadeh/Zotero2MD"
+documentation = "https://github.com/e-alizadeh/Zotero2MD"
+keywords = [
+    "Zotero",
+    "Markdown",
+    "Note-Taking",
+]
 license = "MIT"
+classifiers = [
+    "Topic :: Software Development :: Build Tools",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Topic :: Text Processing :: Markup :: Markdown",
+    "Topic :: Utilities",
+    "Typing :: Typed",
+    "Operating System :: OS Independent"
+]
 
 [tool.poetry.dependencies]
 python = "^3.9"
@@ -14,6 +33,9 @@ SnakeMD = "^0.9.3"
 ipython = "^7.30.1"
 pre-commit = "^2.16.0"
 python-dotenv = "^0.19.2"
+
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/e-alizadeh/Zotero2MD/issues"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
