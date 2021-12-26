@@ -1,0 +1,8 @@
+name: zt2md
+
+channels:
+  - conda-forge
+  - default
+
+dependencies:
+  - python=3.9

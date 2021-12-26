@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "zotero_to_obsidian"
+name = "zotero_to_markdown"
 version = "0.1.0"
 description = ""
 authors = ["ealizadeh <hello@ealizadeh.com>"]
@@ -9,10 +9,11 @@ license = "MIT"
 python = "^3.9"
 Pyzotero = "^1.4.26"
 SnakeMD = "^0.9.3"
-python-dotenv = "^0.19.2"
 
 [tool.poetry.dev-dependencies]
 ipython = "^7.30.1"
+pre-commit = "^2.16.0"
+python-dotenv = "^0.19.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

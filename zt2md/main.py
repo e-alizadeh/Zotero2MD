@@ -1,5 +1,4 @@
 import json
-from collections import defaultdict
 from dotenv import load_dotenv
 import os
 from pyzotero.zotero import Zotero
@@ -9,7 +8,9 @@ from typing import Dict, List
 from snakemd import Document
 
 # Load environment variables
-load_dotenv('secrets.env')
+from zt2md.utils import group_annotations_by_parent_file
+
+load_dotenv('../secrets.env')
 
 
 zot = Zotero(library_id=os.environ["LIBRARY_ID"], library_type="user", api_key=os.environ["API_KEY"])
@@ -17,10 +18,10 @@ all_annotations = zot.everything(zot.items(itemType="annotation"))
 # all_notes = zot.everything(zot.items(itemType="note"))
 # all_items = zot.everything(zot.all_top())
 
-with open('all_annotations.json', 'w') as f:
+with open('../all_annotations.json', 'w') as f:
     json.dump(all_annotations, f)
 #
-with open('all_annotations.json', 'r') as f:
+with open('../all_annotations.json', 'r') as f:
     all_annotations = json.load(f)
 
 COLORS = dict(
@@ -55,13 +56,6 @@ class ZoteroItemBase:
             }
 
         return metadata
-
-
-def group_annotations_by_parent_file(annotations: List[Dict]) -> defaultdict:
-    annotations_by_parent = defaultdict(list)
-    for annot in annotations:
-        annotations_by_parent[annot["data"]["parentItem"]].append(annot)
-    return annotations_by_parent
 
 
 def format_highlight(highlight: Dict) -> str:
