@@ -77,7 +77,7 @@ jobs:
         with:
           python-version: 3.8
 
-      - name: Semantic Release
+      - name: Publish Package (via Semantic Release)
         run: |
           pip install python-semantic-release
           git config user.name github-actions
