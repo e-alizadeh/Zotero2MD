@@ -7,9 +7,9 @@ from pyzotero.zotero import Zotero
 from snakemd import Document, MDList, Paragraph
 
 # Load environment variables
-from zt2md.utils import group_annotations_by_parent_file
+from zt2md.utils import group_annotations_by_parent_file, sanitize_tag
 
-load_dotenv("../secrets.env")
+load_dotenv("./secrets.env")
 
 zot = Zotero(
     library_id=os.environ["LIBRARY_ID"],
@@ -45,8 +45,8 @@ class ZoteroItemBase:
     def __init__(self):
         self.zotero: Zotero = zot
         self.md_config = {
-            "convertTagToInternalLink": True,
-            "doNotConvertTagsToLink": ["Machine Learning"],
+            "convertTagsToInternalLinks": True,
+            "doNotConvertFollowingTagsToLink": ["Machine Learning"],
             "includeHighlightDate": True,
             "hideHighlightDateInPreview": False,
         }
@@ -74,17 +74,17 @@ class ZoteroItemBase:
         return metadata
 
     def format_tags(self, tags: List[str]) -> str:
-        if self.md_config["convertTagToInternalLink"]:
+        if self.md_config["convertTagsToInternalLinks"]:
             return " ".join(
                 [
-                    f"[[{tag}]]"
-                    if tag in self.md_config["doNotConvertTagsToLink"]
-                    else f"#{tag}"
+                    f"#{sanitize_tag(tag)}"
+                    if tag in self.md_config["doNotConvertFollowingTagsToLink"]
+                    else f"[[{tag}]]"
                     for tag in tags
                 ]
             )
         else:
-            return " ".join([f"#{tag}" for tag in tags])
+            return " ".join([f"#{sanitize_tag(tag)}" for tag in tags])
 
     def format_metadata(self, metadata: Dict) -> List:
         output: List = []
@@ -126,27 +126,30 @@ class ItemAnnotations(ZoteroItemBase):
 
     def format_annotation(self, highlight: Dict) -> Union[Tuple, Paragraph]:
         data = highlight["data"]
+        tags = [d_["tag"] for d_ in data["tags"]]
         # zotero_unique_id = f"(key={highlight['key']}, version={highlight['version']})"
+        annot_text, annot_comment, annot_tags = "", "", ""
+
         if data["annotationType"] == "note":
-            return Paragraph(
-                f"{data['annotationComment']} (Note on Page {data['annotationPageLabel']})"
+            annot_text = (
+                f"{data['annotationComment']} (Note on *Page {data['annotationPageLabel']}*)"
                 + self._format_highlighted_date(data["dateModified"])
                 # f"<!---->"
             )
         elif data["annotationType"] == "highlight":
-            annot_text = Paragraph(
+            annot_text = (
                 f"{data['annotationText']} "
-                f"(Page {data['annotationPageLabel']})"
+                f"(*Page {data['annotationPageLabel']}*)"
                 f"<!--(Highlighted on {data['dateAdded']})-->"
                 # f"<!---->"
             )
-            if data.get("annotationComment", "") == "":
-                return annot_text
-            else:
+            if data.get("annotationComment", "") != "":
                 annot_comment = MDList([f"**Comment**: {data['annotationComment']}"])
-                return (annot_text, annot_comment)
-        else:
-            return Paragraph("")
+
+        if tags:
+            annot_tags = MDList([self.format_tags(tags)])
+
+        return annot_text, annot_comment, annot_tags
 
     def create_metadata_section(self, metadata: Dict) -> None:
         self.doc.add_header(level=1, text="Metadata")
@@ -158,8 +161,8 @@ class ItemAnnotations(ZoteroItemBase):
         for h in highlights:
             formatted_annotation = self.format_annotation(h)
             if isinstance(formatted_annotation, tuple):
-                annots.append(formatted_annotation[0])
-                annots.append(formatted_annotation[1])
+                for annot in formatted_annotation:
+                    annots.append(annot)
             else:
                 annots.append(formatted_annotation)
 
@@ -189,6 +192,7 @@ if __name__ == "__main__":
     last_note = notes[note]
     # item_key = "UIBHCUP6"
     item_key = "N69RPVEF"
+    item = highlights[item_key]
 
     a = ItemAnnotations(item_key)
     a.generate_output()

@@ -7,3 +7,7 @@ def group_annotations_by_parent_file(annotations: List[Dict]) -> defaultdict:
     for annot in annotations:
         annotations_by_parent[annot["data"]["parentItem"]].append(annot)
     return annotations_by_parent
+
+
+def sanitize_tag(tag: str):
+    return tag.replace(" ", "_")
