@@ -1,6 +1,6 @@
 .idea/
 *.env
 .ipynb_checkpoints
-*.json
+secrets.json
 *.pyc
 .mypy_cache

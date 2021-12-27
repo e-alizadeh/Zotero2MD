@@ -1,35 +1,18 @@
-import json
 import os
 from typing import Dict, List, Tuple, Union
 
-from dotenv import load_dotenv
 from pyzotero.zotero import Zotero
 from snakemd import Document, MDList, Paragraph
 
-# Load environment variables
+from zt2md import all_annotations, all_notes
 from zt2md.utils import group_annotations_by_parent_file, sanitize_tag
-
-load_dotenv("./secrets.env")
 
 zot = Zotero(
     library_id=os.environ["LIBRARY_ID"],
     library_type="user",
     api_key=os.environ["ZOTERO_API_KEY"],
 )
-# all_annotations = zot.everything(zot.items(itemType="annotation"))
-# all_notes = zot.everything(zot.items(itemType="note"))
-# # all_items = zot.everything(zot.all_top())
-#
-# with open("../all_annotations.json", "w") as f:
-#     json.dump(all_annotations, f)
-#
-# with open("../all_notes.json", "w") as f:
-#     json.dump(all_notes, f)
 
-with open("../all_annotations.json", "r") as f:
-    all_annotations = json.load(f)
-with open("../all_notes.json", "r") as f:
-    all_notes = json.load(f)
 
 COLORS = dict(
     red="#ff6666",
