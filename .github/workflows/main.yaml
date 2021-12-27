@@ -11,6 +11,9 @@ jobs:
   test_and_build:
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, '[skip ci]')" # Skip CI if [skip ci] is passed in the commit.
+    defaults:
+      run:
+        shell: bash -l {0}
 
     steps:
       - name: 📥 Checkout repo
@@ -25,9 +28,6 @@ jobs:
           auto-activate-base: false
           use-mamba: true
 
-      - name: 🐍 Setup Poetry
-        run: curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
-
       - name: Set cache date
         run: echo "DATE=$(date +'%Y%m%d')" >> $GITHUB_ENV
 
@@ -37,12 +37,14 @@ jobs:
           key: linux-64-conda-${{ hashFiles('dev-env.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
         id: cache
 
+      - name: 🐍 Setup Poetry
+        run: curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
+
       - name: ⚙ Install PyPi packages via Poetry
         run: poetry install
         if: steps.cache.outputs.cache-hit != 'true'
 
       - name: 🕵️ Run pytest
-        shell: bash -l {0}
         run: pytest --cov-report xml:coverage.xml
 
       - name: 📤️ Build and publish to pypi
