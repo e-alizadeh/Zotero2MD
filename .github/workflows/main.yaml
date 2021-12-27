@@ -1,8 +1,12 @@
-name: Python package
+name: Test and Build
 on:
   push:
-    tags:
-      - "v*.*.*"
+    branches:
+      - master
+      - dev
+      - 'feature/**'
+    paths-ignore:
+      - '**.md'
 jobs:
   test:
     runs-on: ubuntu-latest
