@@ -10,8 +10,8 @@ jobs:
   Test:
     runs-on: ubuntu-latest
     if: |
-      github.ref_name == 'master' &&
-      "!contains(github.event.head_commit.message, '[skip ci]')" # Skip CI if [skip ci] is passed in the commit.
+      github.ref_name == 'master'
+       && !contains(github.event.head_commit.message, '[skip ci]') # Skip CI if [skip ci] is passed in the commit.
     defaults:
       run:
         shell: bash -l {0}
