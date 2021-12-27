@@ -24,23 +24,23 @@ jobs:
         with:
           python-version: 3.8
 
-#      - name: 🟢 Create Conda environment using Mambaforge
-#        uses: conda-incubator/setup-miniconda@v2
-#        with:
-#          miniforge-variant: Mambaforge
-#          activate-environment: zt2md
-#          environment-file: dev-env.yaml
-#          auto-activate-base: false
-#          use-mamba: true
-#
-#      - name: Set cache date
-#        run: echo "DATE=$(date +'%Y%m%d')" >> $GITHUB_ENV
-#
-#      - uses: actions/cache@v2
-#        with:
-#          path: /usr/share/miniconda3/envs/zt2md
-#          key: linux-64-conda-${{ hashFiles('dev-env.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
-#        id: cache
+      - name: 🟢 Create Conda environment using Mambaforge
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          miniforge-variant: Mambaforge
+          activate-environment: zt2md
+          environment-file: dev-env.yaml
+          auto-activate-base: false
+          use-mamba: true
+
+      - name: Set cache date
+        run: echo "DATE=$(date +'%Y%m%d')" >> $GITHUB_ENV
+
+      - uses: actions/cache@v2
+        with:
+          path: /usr/share/miniconda3/envs/zt2md
+          key: linux-64-conda-${{ hashFiles('dev-env.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
+        id: cache
 
       - name: 🐍 Setup Poetry
         run: curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
