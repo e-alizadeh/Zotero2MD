@@ -53,4 +53,4 @@ jobs:
           pypi_token: ${{ secrets.PYPI_TOKEN }}
           repository_name: "testpypi" # no need when properly set up to publish on PyPI
           repository_url: "https://test.pypi.org/legacy/" # no need when properly set up to publish on PyPI
-        if: steps.extract_branch.outputs.branch == 'master'
+        if: github.ref_name == 'master'
