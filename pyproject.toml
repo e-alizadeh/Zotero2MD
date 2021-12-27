@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "zotero_to_markdown"
-version = "0.1.0"
-description = ""
+name = "zotero2md"
+version = "0.0.1"
+description = "Export Zotero annotations and notes to Markdown files."
 readme = "README.md"
 authors = ["ealizadeh <hello@ealizadeh.com>"]
 homepage = "https://github.com/e-alizadeh/Zotero2MD"
