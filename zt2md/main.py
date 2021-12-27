@@ -86,7 +86,7 @@ class ZoteroItemBase:
         else:
             return " ".join([f"#{tag}" for tag in tags])
 
-    def format_metadata(self, metadata: Dict, is_tag_internal_link=True) -> List:
+    def format_metadata(self, metadata: Dict) -> List:
         output: List = []
         authors = metadata.get("creators", None)
 
