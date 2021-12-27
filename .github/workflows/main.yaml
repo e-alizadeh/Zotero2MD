@@ -1,0 +1,55 @@
+name: Python package
+on:
+  push:
+    tags:
+      - "v*.*.*"
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout repo
+        uses: actions/checkout@v2
+
+      - name: 🟢 Create Conda environment
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          activate-environment: zt2md
+          environment-file: dev-env.yaml
+          auto-activate-base: false
+
+      - name: 🐍 Setup Poetry
+        run: curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
+
+      - name: ⚙ Install PyPi packages via Poetry
+        run: poetry install
+
+      - name: 🧐 Run pytest
+        run: pytest --cov-report xml:coverage.xml
+
+  release:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: 📥 Checkout repo
+        uses: actions/checkout@v2
+
+      - name: 🟢 Create Conda environment
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          activate-environment: zt2md
+          environment-file: dev-env.yaml
+          auto-activate-base: false
+
+      - name: 🐍 Setup Poetry
+        run: curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
+
+      - name: ⚙ Install PyPi packages via Poetry
+        run: poetry install
+
+      - name: 📤️ Build and publish to pypi
+        uses: JRubics/poetry-publish@v1.9
+        with:
+          pypi_token: ${{ secrets.PYPI_TOKEN }}
+          repository_name: "testpypi" # no need when properly set up to publish on PyPI
+          repository_url: "https://test.pypi.org/legacy/" # no need when properly set up to publish on PyPI
+        if: steps.extract_branch.outputs.branch == 'master'
