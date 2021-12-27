@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - master
-      - release
     paths-ignore:
       - '**.md'
 jobs:
@@ -83,3 +82,5 @@ jobs:
           git config user.name github-actions
           git config user.email github-actions@github.com
           semantic-release publish
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
