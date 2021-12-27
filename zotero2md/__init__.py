@@ -3,6 +3,8 @@ from pathlib import Path
 
 from pyzotero.zotero import Zotero
 
+__version__ = "0.0.1"
+
 ROOT_DIR: Path = Path(__file__).parent
 TOP_DIR: Path = ROOT_DIR.parent
 

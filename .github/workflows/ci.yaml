@@ -3,12 +3,10 @@ on:
   push:
     branches:
       - master
-      - dev
-      - 'feature/**'
     paths-ignore:
       - '**.md'
 jobs:
-  test_and_build:
+  Test:
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, '[skip ci]')" # Skip CI if [skip ci] is passed in the commit.
     defaults:
@@ -18,6 +16,13 @@ jobs:
     steps:
       - name: 📥 Checkout repo
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: 🐍  Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
 
       - name: 🟢 Create Conda environment using Mambaforge
         uses: conda-incubator/setup-miniconda@v2
@@ -54,3 +59,26 @@ jobs:
           repository_name: "testpypi" # no need when properly set up to publish on PyPI
           repository_url: "https://test.pypi.org/legacy/" # no need when properly set up to publish on PyPI
         if: github.ref_name == 'master'
+
+  Release:
+    needs: Test
+    runs-on: ubuntu-latest
+    if:  github.ref_name == 'release'
+
+    steps:
+      - name: 📥 Checkout repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: 🐍  Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Semantic Release
+        run: |
+          pip install python-semantic-release
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          semantic-release publish
