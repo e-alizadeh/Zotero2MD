@@ -14,7 +14,7 @@ def group_annotations_by_parent_file(annotations: List[Dict]) -> defaultdict:
 
 
 def sanitize_tag(tag: str):
-    return tag.replace(" ", "_")
+    return tag.strip().replace(" ", "_")
 
 
 def retrieve_all_annotations(zot: Zotero):
