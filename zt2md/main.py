@@ -16,15 +16,15 @@ zot = Zotero(
     library_type="user",
     api_key=os.environ["ZOTERO_API_KEY"],
 )
-all_annotations = zot.everything(zot.items(itemType="annotation"))
-all_notes = zot.everything(zot.items(itemType="note"))
-# all_items = zot.everything(zot.all_top())
-
-with open("../all_annotations.json", "w") as f:
-    json.dump(all_annotations, f)
-
-with open("../all_notes.json", "w") as f:
-    json.dump(all_notes, f)
+# all_annotations = zot.everything(zot.items(itemType="annotation"))
+# all_notes = zot.everything(zot.items(itemType="note"))
+# # all_items = zot.everything(zot.all_top())
+#
+# with open("../all_annotations.json", "w") as f:
+#     json.dump(all_annotations, f)
+#
+# with open("../all_notes.json", "w") as f:
+#     json.dump(all_notes, f)
 
 with open("../all_annotations.json", "r") as f:
     all_annotations = json.load(f)
