@@ -1,19 +1,10 @@
 import json
-import os
 from typing import Dict, List, Tuple, Union
 
-from pyzotero.zotero import Zotero
 from snakemd import Document, MDList, Paragraph
 
-from zt2md import ROOT_DIR
+from zt2md import ROOT_DIR, zotero_client
 from zt2md.utils import sanitize_tag
-
-zot = Zotero(
-    library_id=os.environ["LIBRARY_ID"],
-    library_type="user",
-    api_key=os.environ["ZOTERO_API_KEY"],
-)
-
 
 COLORS = dict(
     red="#ff6666",
@@ -27,7 +18,7 @@ HEX_to_COLOR = {v: k for k, v in COLORS.items()}
 
 class ZoteroItemBase:
     def __init__(self):
-        self.zotero: Zotero = zot
+        self.zotero = zotero_client
 
         # Load output configurations used for generating markdown files.
         with open(ROOT_DIR.joinpath("output_config.json"), "r") as f:

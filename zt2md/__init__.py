@@ -1,7 +1,9 @@
 import json
+from os import environ
 from pathlib import Path
 
 from dotenv import load_dotenv
+from pyzotero.zotero import Zotero
 
 ROOT_DIR: Path = Path(__file__).parent
 TOP_DIR: Path = ROOT_DIR.parent
@@ -11,15 +13,15 @@ ALL_NOTES_FILEPATH = TOP_DIR.joinpath("all_notes.json")
 
 load_dotenv(TOP_DIR.joinpath("secrets.env"))
 
-# all_annotations = zot.everything(zot.items(itemType="annotation"))
-# all_notes = zot.everything(zot.items(itemType="note"))
-# # all_items = zot.everything(zot.all_top())
-#
-# with open(ALL_ANNOTATIONS_FILEPATH, "w") as f:
-#     json.dump(all_annotations, f)
-#
-# with open(ALL_NOTES_FILEPATH, "w") as f:
-#     json.dump(all_notes, f)
+zotero_client = Zotero(
+    library_id=environ["LIBRARY_ID"],
+    library_type="user",
+    api_key=environ["ZOTERO_API_KEY"],
+)
+
+all_annotations = zotero_client.everything(zotero_client.items(itemType="annotation"))
+all_notes = zotero_client.everything(zotero_client.items(itemType="note"))
+# all_items = zotero.everything(zotero.all_top())
 
 with open(ALL_ANNOTATIONS_FILEPATH, "r") as f:
     all_annotations = json.load(f)
