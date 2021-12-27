@@ -1,18 +1,15 @@
 import json
 import os
-
-# from dataclass import dataclass
-from enum import Enum
 from typing import Dict, List, Tuple, Union
 
 from dotenv import load_dotenv
 from pyzotero.zotero import Zotero
-from snakemd import Document, InlineText, MDList, Paragraph
+from snakemd import Document, MDList, Paragraph
 
 # Load environment variables
 from zt2md.utils import group_annotations_by_parent_file
 
-load_dotenv("./secrets.env")
+load_dotenv("../secrets.env")
 
 zot = Zotero(
     library_id=os.environ["LIBRARY_ID"],
@@ -47,6 +44,12 @@ HEX_to_COLOR = {v: k for k, v in COLORS.items()}
 class ZoteroItemBase:
     def __init__(self):
         self.zotero: Zotero = zot
+        self.md_config = {
+            "convertTagToInternalLink": True,
+            "doNotConvertTagsToLink": ["Machine Learning"],
+            "includeHighlightDate": True,
+            "hideHighlightDateInPreview": False,
+        }
 
     def get_item_metadata(self, item_details: Dict) -> Dict:
         if "parentItem" in item_details["data"]:
@@ -70,10 +73,16 @@ class ZoteroItemBase:
 
         return metadata
 
-    @staticmethod
-    def format_tags(tags: List[str], internal_link: bool = True) -> str:
-        if internal_link:
-            return " ".join([f"[[{tag}]]" for tag in tags])
+    def format_tags(self, tags: List[str]) -> str:
+        if self.md_config["convertTagToInternalLink"]:
+            return " ".join(
+                [
+                    f"[[{tag}]]"
+                    if tag in self.md_config["doNotConvertTagsToLink"]
+                    else f"#{tag}"
+                    for tag in tags
+                ]
+            )
         else:
             return " ".join([f"#{tag}" for tag in tags])
 
@@ -82,19 +91,19 @@ class ZoteroItemBase:
         authors = metadata.get("creators", None)
 
         if len(authors) == 1:
-            output.append(f"Author: {authors[0]}")
+            output.append(f"**Author:** {authors[0]}")
         elif 1 < len(authors) <= 5:
-            output.append(f"Authors: {', '.join(authors)}")
+            output.append(f"**Authors:** {', '.join(authors)}")
         elif len(authors) > 5:
-            output.append(f"Authors: {authors[0]} et al.")
+            output.append(f"**Authors:** {authors[0]} et al.")
 
         if metadata.get("date", None):
-            output.append(f"Date: {metadata['date']}")
+            output.append(f"**Date:** {metadata['date']}")
 
         tags = metadata.get("tags", None)
 
         if tags:
-            output.append(self.format_tags(tags, is_tag_internal_link))
+            output.append(self.format_tags(tags))
         return output
 
 
@@ -106,14 +115,22 @@ class ItemAnnotations(ZoteroItemBase):
             name="initial_filename"
         )  # the filename will be updated later!
 
+    def _format_highlighted_date(self, date: str):
+        if self.md_config["includeHighlightDate"]:
+            if self.md_config["hideHighlightDateInPreview"]:
+                return f"<!--(Highlighted on {date})-->"
+            else:
+                return f"(Highlighted on {date})"
+        else:
+            return ""
+
     def format_annotation(self, highlight: Dict) -> Union[Tuple, Paragraph]:
         data = highlight["data"]
         # zotero_unique_id = f"(key={highlight['key']}, version={highlight['version']})"
         if data["annotationType"] == "note":
             return Paragraph(
-                f"{data['annotationComment']} "
-                f"(Page {data['annotationPageLabel']})"
-                f"<!--(Highlighted on {data['dateModified']})-->"
+                f"{data['annotationComment']} (Note on Page {data['annotationPageLabel']})"
+                + self._format_highlighted_date(data["dateModified"])
                 # f"<!---->"
             )
         elif data["annotationType"] == "highlight":
