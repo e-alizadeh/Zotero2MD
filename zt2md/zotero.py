@@ -63,13 +63,13 @@ class ZoteroItemBase:
     def format_metadata(self, metadata: Dict) -> List:
         output: List = []
         authors = metadata.get("creators", None)
-
-        if len(authors) == 1:
-            output.append(f"**Author:** {authors[0]}")
-        elif 1 < len(authors) <= 5:
-            output.append(f"**Authors:** {', '.join(authors)}")
-        elif len(authors) > 5:
-            output.append(f"**Authors:** {authors[0]} et al.")
+        if authors:
+            if len(authors) == 1:
+                output.append(f"**Author:** {authors[0]}")
+            elif 1 < len(authors) <= 5:
+                output.append(f"**Authors:** {', '.join(authors)}")
+            elif len(authors) > 5:
+                output.append(f"**Authors:** {authors[0]} et al.")
 
         if metadata.get("date", None):
             output.append(f"**Date:** {metadata['date']}")
@@ -153,5 +153,13 @@ class ItemAnnotations(ZoteroItemBase):
 
         output_filename = metadata["title"]
         self.doc._name = output_filename
-        self.doc.output_page()
-        print(f"File {output_filename} is successfully created.")
+        try:
+            self.doc.output_page("zotero_output")
+            print(
+                f'File "{output_filename}" (item_key="{self.item_key}") was successfully created.'
+            )
+        except:
+            print(
+                f'File "{output_filename}" (item_key="{self.item_key}") is failed to generate.\n'
+                f"SKIPPING..."
+            )

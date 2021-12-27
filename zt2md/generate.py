@@ -1,14 +1,14 @@
-from zt2md import all_annotations, all_notes
-from zt2md.utils import group_annotations_by_parent_file
+from zt2md import zotero_client
+from zt2md.utils import group_annotations_by_parent_file, retrieve_all_annotations
 from zt2md.zotero import ItemAnnotations
 
 if __name__ == "__main__":
-    highlights = group_annotations_by_parent_file(all_annotations)
-    notes = group_annotations_by_parent_file(all_notes)
-    note = "WS2V4TWS"
-    last_note = notes[note]
-    # item_key = "UIBHCUP6" # HS553U65
-    item_key = "HS553U65"
+    highlights = group_annotations_by_parent_file(
+        retrieve_all_annotations(zotero_client)
+    )
 
-    a = ItemAnnotations(item_annotations=highlights[item_key], item_key=item_key)
-    a.generate_output()
+    for i, item_key in enumerate(highlights.keys()):
+        print(f"File {i + 1} of {len(highlights)} is under process ...")
+        item = ItemAnnotations(item_annotations=highlights[item_key], item_key=item_key)
+        item.generate_output()
+        print("\n")
