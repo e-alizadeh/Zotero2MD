@@ -1,4 +1,4 @@
-from zt2md.utils import sanitize_tag
+from zotero2md.utils import sanitize_tag
 
 
 def test_sanitize_tag():

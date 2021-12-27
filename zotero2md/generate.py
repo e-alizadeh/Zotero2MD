@@ -1,6 +1,6 @@
-from zt2md import zotero_client
-from zt2md.utils import group_annotations_by_parent_file, retrieve_all_annotations
-from zt2md.zotero import ItemAnnotations
+from zotero2md import zotero_client
+from zotero2md.utils import group_annotations_by_parent_file, retrieve_all_annotations
+from zotero2md.zotero import ItemAnnotations
 
 if __name__ == "__main__":
     highlights = group_annotations_by_parent_file(

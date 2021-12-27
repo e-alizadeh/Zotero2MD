@@ -3,8 +3,8 @@ from typing import Dict, List, Tuple, Union
 
 from snakemd import Document, MDList, Paragraph
 
-from zt2md import ROOT_DIR, zotero_client
-from zt2md.utils import sanitize_tag
+from zotero2md import ROOT_DIR, zotero_client
+from zotero2md.utils import sanitize_tag
 
 COLORS = dict(
     red="#ff6666",

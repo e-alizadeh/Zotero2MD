@@ -3,7 +3,7 @@ from typing import Dict, List
 
 from pyzotero.zotero import Zotero
 
-from zt2md import zotero_client
+from zotero2md import zotero_client
 
 
 def group_annotations_by_parent_file(annotations: List[Dict]) -> defaultdict:
