@@ -1,10 +1,11 @@
+import json
 import os
 from typing import Dict, List, Tuple, Union
 
 from pyzotero.zotero import Zotero
 from snakemd import Document, MDList, Paragraph
 
-from zt2md import all_annotations, all_notes
+from zt2md import ROOT_DIR, all_annotations, all_notes
 from zt2md.utils import group_annotations_by_parent_file, sanitize_tag
 
 zot = Zotero(
@@ -27,12 +28,10 @@ HEX_to_COLOR = {v: k for k, v in COLORS.items()}
 class ZoteroItemBase:
     def __init__(self):
         self.zotero: Zotero = zot
-        self.md_config = {
-            "convertTagsToInternalLinks": True,
-            "doNotConvertFollowingTagsToLink": ["Machine Learning"],
-            "includeHighlightDate": True,
-            "hideHighlightDateInPreview": False,
-        }
+
+        # Load output configurations used for generating markdown files.
+        with open(ROOT_DIR.joinpath("output_config.json"), "r") as f:
+            self.md_config = json.load(f)
 
     def get_item_metadata(self, item_details: Dict) -> Dict:
         if "parentItem" in item_details["data"]:
