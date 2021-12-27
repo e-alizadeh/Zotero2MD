@@ -10,9 +10,17 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['pypy-3.7', 'pypy-3.8', 'pypy-3.9']
     steps:
       - name: 📥 Checkout repo
         uses: actions/checkout@v2
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
 
       - name: 🟢 Create Conda environment
         uses: conda-incubator/setup-miniconda@v2
@@ -27,7 +35,7 @@ jobs:
       - name: ⚙ Install PyPi packages via Poetry
         run: poetry install
 
-      - name: 🧐 Run pytest
+      - name: 🕵️ Run pytest
         run: pytest --cov-report xml:coverage.xml
 
   release:
