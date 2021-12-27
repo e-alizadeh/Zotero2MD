@@ -128,8 +128,8 @@ class ItemAnnotations(ZoteroItemBase):
         data = highlight["data"]
         tags = [d_["tag"] for d_ in data["tags"]]
         # zotero_unique_id = f"(key={highlight['key']}, version={highlight['version']})"
-        annot_text, annot_comment, annot_tags = "", "", ""
-
+        annot_text = ""
+        annot_sub_bullet = []
         if data["annotationType"] == "note":
             annot_text = (
                 f"{data['annotationComment']} (Note on *Page {data['annotationPageLabel']}*)"
@@ -144,12 +144,12 @@ class ItemAnnotations(ZoteroItemBase):
                 # f"<!---->"
             )
             if data.get("annotationComment", "") != "":
-                annot_comment = MDList([f"**Comment**: {data['annotationComment']}"])
+                annot_sub_bullet.append(f"**Comment**: {data['annotationComment']}")
 
         if tags:
-            annot_tags = MDList([self.format_tags(tags)])
+            annot_sub_bullet.append(self.format_tags(tags))
 
-        return annot_text, annot_comment, annot_tags
+        return annot_text, MDList(annot_sub_bullet)
 
     def create_metadata_section(self, metadata: Dict) -> None:
         self.doc.add_header(level=1, text="Metadata")
@@ -161,8 +161,8 @@ class ItemAnnotations(ZoteroItemBase):
         for h in highlights:
             formatted_annotation = self.format_annotation(h)
             if isinstance(formatted_annotation, tuple):
-                for annot in formatted_annotation:
-                    annots.append(annot)
+                annots.append(formatted_annotation[0])
+                annots.append(formatted_annotation[1])
             else:
                 annots.append(formatted_annotation)
 
