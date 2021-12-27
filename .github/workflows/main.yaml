@@ -8,12 +8,9 @@ on:
     paths-ignore:
       - '**.md'
 jobs:
-  test:
+  test_and_build:
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, '[skip ci]')" # Skip CI if [skip ci] is passed in the commit.
-    defaults:
-      run:
-        shell: bash -l {0}
 
     steps:
       - name: 📥 Checkout repo
@@ -28,44 +25,28 @@ jobs:
           auto-activate-base: false
           use-mamba: true
 
-      - name: Echo
-        run: conda info
+      - name: Set cache date
+        run: echo "DATE=$(date +'%Y%m%d')" >> $GITHUB_ENV
+
+      - uses: actions/cache@v2
+        with:
+          path: /usr/share/miniconda3/envs/zt2md
+          key: linux-64-conda-${{ hashFiles('dev-env.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
+        id: cache
 
       - name: 🐍 Setup Poetry
         run: curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
 
       - name: ⚙ Install PyPi packages via Poetry
         run: poetry install
+
+      - name: Update environment
+        run: mamba env update -n zt2md -f dev.yml
+        if: steps.cache.outputs.cache-hit != 'true'
 
       - name: 🕵️ Run pytest
-        run: pytest --cov-report xml:coverage.xml
-
-  release:
-    runs-on: ubuntu-latest
-    needs: test
-    if: "!contains(github.event.head_commit.message, '[skip ci]')" # Skip CI if [skip ci] is passed in the commit.
-    defaults:
-      run:
         shell: bash -l {0}
-
-    steps:
-      - name: 📥 Checkout repo
-        uses: actions/checkout@v2
-
-      - name: 🟢 Create Conda environment using Mambaforge
-        uses: conda-incubator/setup-miniconda@v2
-        with:
-          miniforge-variant: Mambaforge
-          activate-environment: zt2md
-          environment-file: dev-env.yaml
-          auto-activate-base: false
-          use-mamba: true
-
-      - name: 🐍 Setup Poetry
-        run: curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
-
-      - name: ⚙ Install PyPi packages via Poetry
-        run: poetry install
+        run: pytest --cov-report xml:coverage.xml
 
       - name: 📤️ Build and publish to pypi
         uses: JRubics/poetry-publish@v1.9
