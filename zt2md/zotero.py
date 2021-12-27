@@ -5,8 +5,8 @@ from typing import Dict, List, Tuple, Union
 from pyzotero.zotero import Zotero
 from snakemd import Document, MDList, Paragraph
 
-from zt2md import ROOT_DIR, all_annotations, all_notes
-from zt2md.utils import group_annotations_by_parent_file, sanitize_tag
+from zt2md import ROOT_DIR
+from zt2md.utils import sanitize_tag
 
 zot = Zotero(
     library_id=os.environ["LIBRARY_ID"],
@@ -55,18 +55,19 @@ class ZoteroItemBase:
 
         return metadata
 
-    def format_tags(self, tags: List[str]) -> str:
+    def format_tags(self, tags: List[Dict[str, str]]) -> str:
+        flattened_tags = [d_["tag"] for d_ in tags]
         if self.md_config["convertTagsToInternalLinks"]:
             return " ".join(
                 [
                     f"#{sanitize_tag(tag)}"
                     if tag in self.md_config["doNotConvertFollowingTagsToLink"]
                     else f"[[{tag}]]"
-                    for tag in tags
+                    for tag in flattened_tags
                 ]
             )
         else:
-            return " ".join([f"#{sanitize_tag(tag)}" for tag in tags])
+            return " ".join([f"#{sanitize_tag(tag)}" for tag in flattened_tags])
 
     def format_metadata(self, metadata: Dict) -> List:
         output: List = []
@@ -90,9 +91,12 @@ class ZoteroItemBase:
 
 
 class ItemAnnotations(ZoteroItemBase):
-    def __init__(self, item_key: str):
+    def __init__(self, item_annotations: List[Dict], item_key: str):
         super().__init__()
+        self.item_annotations = item_annotations
         self.item_key = item_key
+        self.item_details = self.zotero.item(self.item_key)
+
         self.doc = Document(
             name="initial_filename"
         )  # the filename will be updated later!
@@ -108,7 +112,7 @@ class ItemAnnotations(ZoteroItemBase):
 
     def format_annotation(self, highlight: Dict) -> Union[Tuple, Paragraph]:
         data = highlight["data"]
-        tags = [d_["tag"] for d_ in data["tags"]]
+        tags = data["tags"]
         # zotero_unique_id = f"(key={highlight['key']}, version={highlight['version']})"
         annot_text = ""
         annot_sub_bullet = []
@@ -151,30 +155,12 @@ class ItemAnnotations(ZoteroItemBase):
         self.doc.add_element(MDList(annots))
 
     def generate_output(self):
-        d = group_annotations_by_parent_file(all_annotations)
-        item_highlights = d[self.item_key]
-        item_details = self.zotero.item(self.item_key)
-        metadata = self.get_item_metadata(item_details)
+        metadata = self.get_item_metadata(self.item_details)
 
         self.create_metadata_section(metadata)
-        self.create_annotations_section(item_highlights)
+        self.create_annotations_section(self.item_annotations)
 
         output_filename = metadata["title"]
         self.doc._name = output_filename
         self.doc.output_page()
         print(f"File {output_filename} is successfully created.")
-
-
-# def create_md_doc(highlights, notes, metadata, frontmatter) -> None:
-
-if __name__ == "__main__":
-    highlights = group_annotations_by_parent_file(all_annotations)
-    notes = group_annotations_by_parent_file(all_notes)
-    note = "WS2V4TWS"
-    last_note = notes[note]
-    # item_key = "UIBHCUP6"
-    item_key = "N69RPVEF"
-    item = highlights[item_key]
-
-    a = ItemAnnotations(item_key)
-    a.generate_output()
