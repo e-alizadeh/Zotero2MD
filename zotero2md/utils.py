@@ -17,6 +17,14 @@ def sanitize_tag(tag: str):
     return tag.strip().replace(" ", "_")
 
 
+def sanitize_filename(filename: str):
+    out_filename = filename.strip()
+    char_to_replace = {".pdf": " ", ":": " -- ", "/": "-", "?": " ", ".": " "}
+    for old, new in char_to_replace.items():
+        out_filename = out_filename.replace(old, new)
+    return out_filename
+
+
 def retrieve_all_annotations(zot: Zotero):
     return zot.everything(zotero_client.items(itemType="annotation"))
 

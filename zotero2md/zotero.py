@@ -1,10 +1,11 @@
 import json
+from pathlib import Path
 from typing import Dict, List, Tuple, Union
 
 from snakemd import Document, MDList, Paragraph
 
 from zotero2md import ROOT_DIR, zotero_client
-from zotero2md.utils import sanitize_tag
+from zotero2md.utils import sanitize_filename, sanitize_tag
 
 COLORS = dict(
     red="#ff6666",
@@ -14,6 +15,9 @@ COLORS = dict(
     purple="#a28ae5",
 )
 HEX_to_COLOR = {v: k for k, v in COLORS.items()}
+
+_OUTPUT_DIR = Path("zotero_output")
+_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 
 class ZoteroItemBase:
@@ -115,7 +119,7 @@ class ItemAnnotations(ZoteroItemBase):
             )
         elif data["annotationType"] == "highlight":
             annot_text = (
-                f"{data['annotationText']} (*Page {data['annotationPageLabel']}*)"
+                f"{data['annotationText']} (*Page {data['annotationPageLabel']}*) "
                 + self._format_highlighted_date(data["dateModified"])
                 # f"<!---->"
             )
@@ -179,14 +183,16 @@ class ItemAnnotations(ZoteroItemBase):
 
         """
         metadata = self.get_item_metadata(self.item_details)
+        title = metadata["title"]
 
+        self.doc.add_header(title, level=1)
         self.create_metadata_section(metadata)
         self.create_annotations_section(self.item_annotations)
 
-        output_filename = metadata["title"]
-        self.doc._name = output_filename
+        output_filename = sanitize_filename(title) + ".md"
         try:
-            self.doc.output_page("zotero_output")
+            with open(_OUTPUT_DIR.joinpath(output_filename), "w+") as f:
+                f.write(self.doc.render())
             print(
                 f'File "{output_filename}" (item_key="{self.item_key}") was successfully created.'
             )
