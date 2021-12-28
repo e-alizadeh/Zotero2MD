@@ -197,4 +197,4 @@ class ItemAnnotations(ZoteroItemBase):
                 f'File "{output_filename}" (item_key="{self.item_key}") is failed to generate.\n'
                 f"SKIPPING..."
             )
-            return (output_filename, self.item_key)
+            return output_filename, self.item_key
