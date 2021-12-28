@@ -4,6 +4,8 @@ on:
     branches:
       - master
       - release
+      - "feature/*"
+      - "bugfix/*"
     paths-ignore:
       - '**.md'
 jobs:
@@ -52,14 +54,6 @@ jobs:
 
       - name: 🕵️ Run pytest
         run: pytest --cov-report xml:coverage.xml
-#
-#      - name: 📤️ Build and publish to pypi
-#        uses: JRubics/poetry-publish@v1.9
-#        with:
-#          pypi_token: ${{ secrets.PYPI_TOKEN }}
-#          repository_name: "testpypi" # no need when properly set up to publish on PyPI
-#          repository_url: "https://test.pypi.org/legacy/" # no need when properly set up to publish on PyPI
-#        if: github.ref_name == 'master'
 
   Release:
     needs: Test
