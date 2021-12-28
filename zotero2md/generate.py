@@ -48,7 +48,7 @@ def generate_annotations_for_all_items(
         for (file, item_key) in failed_files:
             print(f"Item Key: {item_key} | File: {file}\n")
     else:
-        print("\n All items were successfully created!")
+        print("\nAll items were successfully created!")
 
 
 if __name__ == "__main__":
