@@ -109,15 +109,14 @@ class ItemAnnotations(ZoteroItemBase):
         annot_sub_bullet = []
         if data["annotationType"] == "note":
             annot_text = (
-                f"{data['annotationComment']} (Note on *Page {data['annotationPageLabel']}*)"
+                f"{data['annotationComment']} (Note on *Page {data['annotationPageLabel']}*) "
                 + self._format_highlighted_date(data["dateModified"])
                 # f"<!---->"
             )
         elif data["annotationType"] == "highlight":
             annot_text = (
-                f"{data['annotationText']} "
-                f"(*Page {data['annotationPageLabel']}*)"
-                f"<!--(Highlighted on {data['dateAdded']})-->"
+                f"{data['annotationText']} (*Page {data['annotationPageLabel']}*)"
+                + self._format_highlighted_date(data["dateModified"])
                 # f"<!---->"
             )
             if data.get("annotationComment", "") != "":
