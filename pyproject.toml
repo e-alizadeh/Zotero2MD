@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "zotero2md"
-version = "0.0.2"
+version = "0.0.0"
 description = "Export Zotero annotations and notes to Markdown files."
 readme = "README.md"
 authors = ["ealizadeh <hello@ealizadeh.com>"]
@@ -32,9 +32,7 @@ version_variable = [
 ]
 branch = "release"
 upload_to_repository = true
-respository = "testpypi"
-respository_url = "https://test.pypi.org/legacy/"
-upload_to_release = false
+upload_to_release = true
 build_command = "pip install poetry && poetry build"
 
 
