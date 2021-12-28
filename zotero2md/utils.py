@@ -3,8 +3,6 @@ from typing import Dict, List
 
 from pyzotero.zotero import Zotero
 
-from zotero2md import zotero_client
-
 
 def group_annotations_by_parent_file(annotations: List[Dict]) -> defaultdict:
     annotations_by_parent = defaultdict(list)
@@ -66,9 +64,11 @@ def sanitize_filename(filename: str) -> str:
     return out_filename
 
 
-def retrieve_all_annotations(zot: Zotero):
-    return zot.everything(zotero_client.items(itemType="annotation"))
+def retrieve_all_annotations(zotero_client: Zotero):
+    print("Retrieving ALL annotations from Zotero Database. \nIt may take some time...")
+    return zotero_client.everything(zotero_client.items(itemType="annotation"))
 
 
-def retrieve_all_notes(zot: Zotero):
-    return zot.everything(zotero_client.items(itemType="note"))
+def retrieve_all_notes(zotero_client: Zotero):
+    print("Retrieving ALL notes from Zotero Database. \nIt may take some time...")
+    return zotero_client.everything(zotero_client.items(itemType="note"))

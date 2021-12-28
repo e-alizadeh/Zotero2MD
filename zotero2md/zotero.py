@@ -1,32 +1,25 @@
-import json
 from pathlib import Path
 from typing import Dict, List, Tuple, Union
 
+from pyzotero.zotero import Zotero
 from snakemd import Document, MDList, Paragraph
 
-from zotero2md import ROOT_DIR, zotero_client
+from zotero2md import default_params
 from zotero2md.utils import sanitize_filename, sanitize_tag
-
-COLORS = dict(
-    red="#ff6666",
-    green="#5fb236",
-    blue="#2ea8e5",
-    yellow="#ffd400",
-    purple="#a28ae5",
-)
-HEX_to_COLOR = {v: k for k, v in COLORS.items()}
 
 _OUTPUT_DIR = Path("zotero_output")
 _OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 
 class ZoteroItemBase:
-    def __init__(self):
+    def __init__(self, zotero_client: Zotero, md_params: Dict = None):
         self.zotero = zotero_client
 
         # Load output configurations used for generating markdown files.
-        with open(ROOT_DIR.joinpath("output_config.json"), "r") as f:
-            self.md_config = json.load(f)
+        self.md_config = default_params
+
+        if md_params:
+            self.md_config = {**self.md_config, **md_params}
 
     def get_item_metadata(self, item_details: Dict) -> Dict:
         if "parentItem" in item_details["data"]:
@@ -56,7 +49,7 @@ class ZoteroItemBase:
             return " ".join(
                 [
                     f"#{sanitize_tag(tag)}"
-                    if tag in self.md_config["doNotConvertFollowingTagsToLink"]
+                    if tag in self.md_config["doNotConvertFollowingTagsToLink"]  # type: ignore
                     else f"[[{tag}]]"
                     for tag in flattened_tags
                 ]
@@ -86,8 +79,14 @@ class ZoteroItemBase:
 
 
 class ItemAnnotations(ZoteroItemBase):
-    def __init__(self, item_annotations: List[Dict], item_key: str):
-        super().__init__()
+    def __init__(
+        self,
+        zotero_client: Zotero,
+        md_params: Union[Dict, None],
+        item_annotations: List[Dict],
+        item_key: str,
+    ):
+        super().__init__(zotero_client, md_params)
         self.item_annotations = item_annotations
         self.item_key = item_key
         self.item_details = self.zotero.item(self.item_key)

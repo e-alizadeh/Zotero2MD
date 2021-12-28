@@ -1,6 +1,6 @@
 {
   "convertTagsToInternalLinks": true,
-  "doNotConvertFollowingTagsToLink": ["Machine Learning"],
+  "doNotConvertFollowingTagsToLink": [],
   "includeHighlightDate": true,
   "hideHighlightDateInPreview": false
 }
