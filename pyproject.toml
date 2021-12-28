@@ -32,7 +32,7 @@ version_variable = [
 ]
 branch = "release"
 upload_to_repository = true
-respository = "testpypi"
+respository = "https://test.pypi.org/legacy/"
 upload_to_release = false
 build_command = "pip install poetry && poetry build"
 
