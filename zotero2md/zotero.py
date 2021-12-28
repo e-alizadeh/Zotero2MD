@@ -170,7 +170,7 @@ class ItemAnnotations(ZoteroItemBase):
 
         self.doc.add_element(MDList(annots))
 
-    def generate_output(self) -> List[Tuple[str, str]]:
+    def generate_output(self) -> Union[None, Tuple[str, str]]:
         """Generate the markdown file for a Zotero Item combining metadata, annotations
 
         Returns
@@ -186,17 +186,15 @@ class ItemAnnotations(ZoteroItemBase):
 
         output_filename = metadata["title"]
         self.doc._name = output_filename
-        failed_files: List = []
         try:
             self.doc.output_page("zotero_output")
             print(
                 f'File "{output_filename}" (item_key="{self.item_key}") was successfully created.'
             )
+            return None
         except:
-            failed_files.append((output_filename, self.item_key))
             print(
                 f'File "{output_filename}" (item_key="{self.item_key}") is failed to generate.\n'
                 f"SKIPPING..."
             )
-
-        return failed_files
+            return (output_filename, self.item_key)
