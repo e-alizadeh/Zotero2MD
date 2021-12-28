@@ -129,13 +129,38 @@ class ItemAnnotations(ZoteroItemBase):
         return annot_text, MDList(annot_sub_bullet)
 
     def create_metadata_section(self, metadata: Dict) -> None:
+        """Generate the metadata sections (titled "Metadata") containing metadata about the Zotero Item
+
+        Parameters
+        ----------
+        metadata: Dict
+            A dictionary of an item details
+
+        Returns
+        -------
+        None
+        """
         self.doc.add_header(level=1, text="Metadata")
         self.doc.add_element(MDList(self.format_metadata(metadata)))
 
-    def create_annotations_section(self, highlights: List) -> None:
+    def create_annotations_section(self, annotations: List) -> None:
+        """Generate the annotation sections (titled "Highlights")
+        In Zotero, an annotation is a highlighted text with the possibility of having related comment and tag(s).
+        In addition, a note can also be added to a page without any highlight. This is also considered an annotation.
+        The itemType="annotation" in the API response of both scenarios above.
+
+        Parameters
+        ----------
+        annotations: List[Dict]
+            A list containing all annotations of a Zotero Item.
+
+        Returns
+        -------
+        None
+        """
         self.doc.add_header(level=1, text="Highlights")
         annots = []
-        for h in highlights:
+        for h in annotations:
             formatted_annotation = self.format_annotation(h)
             if isinstance(formatted_annotation, tuple):
                 annots.append(formatted_annotation[0])
@@ -145,7 +170,15 @@ class ItemAnnotations(ZoteroItemBase):
 
         self.doc.add_element(MDList(annots))
 
-    def generate_output(self):
+    def generate_output(self) -> List[Tuple[str, str]]:
+        """Generate the markdown file for a Zotero Item combining metadata, annotations
+
+        Returns
+        -------
+        List
+            Output (filename, item_key) of failed markdown files to compile.
+
+        """
         metadata = self.get_item_metadata(self.item_details)
 
         self.create_metadata_section(metadata)
@@ -153,13 +186,17 @@ class ItemAnnotations(ZoteroItemBase):
 
         output_filename = metadata["title"]
         self.doc._name = output_filename
+        failed_files: List = []
         try:
             self.doc.output_page("zotero_output")
             print(
                 f'File "{output_filename}" (item_key="{self.item_key}") was successfully created.'
             )
         except:
+            failed_files.append((output_filename, self.item_key))
             print(
                 f'File "{output_filename}" (item_key="{self.item_key}") is failed to generate.\n'
                 f"SKIPPING..."
             )
+
+        return failed_files
