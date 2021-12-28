@@ -1,10 +1,11 @@
 import json
+from pathlib import Path
 from typing import Dict, List, Tuple, Union
 
 from snakemd import Document, MDList, Paragraph
 
 from zotero2md import ROOT_DIR, zotero_client
-from zotero2md.utils import sanitize_tag
+from zotero2md.utils import sanitize_filename, sanitize_tag
 
 COLORS = dict(
     red="#ff6666",
@@ -14,6 +15,9 @@ COLORS = dict(
     purple="#a28ae5",
 )
 HEX_to_COLOR = {v: k for k, v in COLORS.items()}
+
+_OUTPUT_DIR = Path("zotero_output")
+_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 
 class ZoteroItemBase:
@@ -109,15 +113,14 @@ class ItemAnnotations(ZoteroItemBase):
         annot_sub_bullet = []
         if data["annotationType"] == "note":
             annot_text = (
-                f"{data['annotationComment']} (Note on *Page {data['annotationPageLabel']}*)"
+                f"{data['annotationComment']} (Note on *Page {data['annotationPageLabel']}*) "
                 + self._format_highlighted_date(data["dateModified"])
                 # f"<!---->"
             )
         elif data["annotationType"] == "highlight":
             annot_text = (
-                f"{data['annotationText']} "
-                f"(*Page {data['annotationPageLabel']}*)"
-                f"<!--(Highlighted on {data['dateAdded']})-->"
+                f"{data['annotationText']} (*Page {data['annotationPageLabel']}*) "
+                + self._format_highlighted_date(data["dateModified"])
                 # f"<!---->"
             )
             if data.get("annotationComment", "") != "":
@@ -129,13 +132,38 @@ class ItemAnnotations(ZoteroItemBase):
         return annot_text, MDList(annot_sub_bullet)
 
     def create_metadata_section(self, metadata: Dict) -> None:
+        """Generate the metadata sections (titled "Metadata") containing metadata about the Zotero Item
+
+        Parameters
+        ----------
+        metadata: Dict
+            A dictionary of an item details
+
+        Returns
+        -------
+        None
+        """
         self.doc.add_header(level=1, text="Metadata")
         self.doc.add_element(MDList(self.format_metadata(metadata)))
 
-    def create_annotations_section(self, highlights: List) -> None:
+    def create_annotations_section(self, annotations: List) -> None:
+        """Generate the annotation sections (titled "Highlights")
+        In Zotero, an annotation is a highlighted text with the possibility of having related comment and tag(s).
+        In addition, a note can also be added to a page without any highlight. This is also considered an annotation.
+        The itemType="annotation" in the API response of both scenarios above.
+
+        Parameters
+        ----------
+        annotations: List[Dict]
+            A list containing all annotations of a Zotero Item.
+
+        Returns
+        -------
+        None
+        """
         self.doc.add_header(level=1, text="Highlights")
         annots = []
-        for h in highlights:
+        for h in annotations:
             formatted_annotation = self.format_annotation(h)
             if isinstance(formatted_annotation, tuple):
                 annots.append(formatted_annotation[0])
@@ -145,21 +173,33 @@ class ItemAnnotations(ZoteroItemBase):
 
         self.doc.add_element(MDList(annots))
 
-    def generate_output(self):
-        metadata = self.get_item_metadata(self.item_details)
+    def generate_output(self) -> Union[None, Tuple[str, str]]:
+        """Generate the markdown file for a Zotero Item combining metadata, annotations
 
+        Returns
+        -------
+        List
+            Output (filename, item_key) of failed markdown files to compile.
+
+        """
+        metadata = self.get_item_metadata(self.item_details)
+        title = metadata["title"]
+
+        self.doc.add_header(title, level=1)
         self.create_metadata_section(metadata)
         self.create_annotations_section(self.item_annotations)
 
-        output_filename = metadata["title"]
-        self.doc._name = output_filename
+        output_filename = sanitize_filename(title) + ".md"
         try:
-            self.doc.output_page("zotero_output")
+            with open(_OUTPUT_DIR.joinpath(output_filename), "w+") as f:
+                f.write(self.doc.render())
             print(
                 f'File "{output_filename}" (item_key="{self.item_key}") was successfully created.'
             )
+            return None
         except:
             print(
                 f'File "{output_filename}" (item_key="{self.item_key}") is failed to generate.\n'
                 f"SKIPPING..."
             )
+            return output_filename, self.item_key
