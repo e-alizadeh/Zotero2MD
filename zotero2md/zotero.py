@@ -1,8 +1,10 @@
 import json
+from os import environ
 from pathlib import Path
 from typing import Dict, List, Tuple, Union
 
 from pyzotero.zotero import Zotero
+from pyzotero.zotero_errors import ParamNotPassed, UnsupportedParams
 from snakemd import Document, MDList, Paragraph
 
 from zotero2md import default_params
@@ -10,6 +12,59 @@ from zotero2md.utils import sanitize_filename, sanitize_tag
 
 _OUTPUT_DIR = Path("zotero_output")
 _OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def get_zotero_client(
+    user_id: str = None, api_key: str = None, library_type: str = "user"
+) -> Zotero:
+    """Create a Zotero client object from Pyzotero library
+
+    Zotero userID and Key are available
+
+    Parameters
+    ----------
+    user_id: str
+        If not passed, then it looks for `ZOTERO_USER_ID` in the environment variables.
+    api_key: str
+        If not passed, then it looks for `ZOTERO_KEY` in the environment variables.
+    library_type: str ['user', 'group']
+        'user': to access your Zotero library
+        'group': to access a shared group library
+
+    Returns
+    -------
+    Zotero
+        a Zotero client object
+    """
+
+    if user_id is None:
+        try:
+            user_id = environ["ZOTERO_USER_ID"]
+        except KeyError:
+            raise ParamNotPassed(
+                "No value for user_id is found. "
+                "You can set it as an environment variable `ZOTERO_USER_ID` or use `user_id` to set it."
+            )
+
+    if api_key is None:
+        try:
+            api_key = environ["ZOTERO_KEY"]
+        except KeyError:
+            raise ParamNotPassed(
+                "No value for api_key is found. "
+                "You can set it as an environment variable `ZOTERO_KEY` or use `api_key` to set it."
+            )
+
+    if library_type is None:
+        library_type = environ.get("LIBRARY_TYPE", "user")
+    elif library_type not in ["user", "group"]:
+        raise UnsupportedParams("library_type value can either be 'user' or 'group'.")
+
+    return Zotero(
+        library_id=user_id,
+        library_type=library_type,
+        api_key=api_key,
+    )
 
 
 class ZoteroItemBase:
