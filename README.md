@@ -1,13 +1,16 @@
 # Zotero to Markdown
 
-Generate Markdown files from Zotero annotations (Zotero Beta). 
-With new Zotero PDF Reader and Note Editor, all highlights are saved in Zotero databases.
+Generate Markdown files from Zotero annotations and notes. 
+With new [Zotero PDF Reader](https://www.zotero.org/support/pdf_reader_preview), all highlights are saved in the Zotero database.
 The highlights are NOT saved in the PDF file unless you export the highlights in order to save them.
 
-You can use the following commands to generate markdown files for your code
+If you annotate your files outside the new Zotero PDF reader, this library will not work with your PDF annotations as those are not retrievable from Zotero API.
+In that case, you may want to use zotfile + mdnotes to extract the annotations and convert them into markdown files.
 
 
-## Installation 
+**_This library is for you if you annotate (highlight + note) using the Zotero's PDF reader (including the beta version in iOs)_**
+
+# Installation 
 You can install the library by running 
 ```shell
 pip install zotero2md
@@ -15,7 +18,7 @@ pip install zotero2md
 
 Note: If you do not have pip installed on your system, you can follow the instructions [here](https://pip.pypa.io/en/stable/installation/).
 
-
+# Usage
 ```shell
 python zotero2md/generate.py <zotero_key> <zotero_id>
 ```
@@ -52,5 +55,28 @@ a JSON file with the following content:
   "hideHighlightDateInPreview": false
 }
 ```
+
+# Features
+- Generate MD files for all annotations and notes saved in Zotero
+- The ability to convert Zotero tags to internal links (`[[ ]]`) used in many bidirectional MD editors.
+  - You can even pass certain tags that you don't want to convert to internal links! (using `doNotConvertFollowingTagsToLink` parameter)
+
+## Quick note
+Since I'm personally using Obsidian as my markdown editor, there are custom parameters to generate MD files that are consistent with Obsidian and I'm planning to add more option there. 
+
+
+# Roadmap
+- [ ] Update existing annotations and notes
+- [ ] Option to add frontmatter section (particularly useful for Obsidian)
+- [ ] More flexibility in styling the output files 
+
+# Request a new feature or report a bug
+Feel free to request a new feature or report a bug in GitHub issue [here](https://github.com/e-alizadeh/Zotero2MD/issues).
+
+## 📫 How to reach me:
+<a href="https://ealizadeh.com" target="_blank"><img alt="Personal Website" src="https://img.shields.io/badge/Personal%20Website-%2312100E.svg?&style=for-the-badge&logoColor=white" /></a>
+<a href="https://www.linkedin.com/in/alizadehesmaeil/" target="_blank"><img alt="LinkedIn" src="https://img.shields.io/badge/linkedin-%230077B5.svg?&style=for-the-badge&logo=linkedin&logoColor=white" /></a>
+<a href="https://medium.com/@ealizadeh" target="_blank"><img alt="Medium" src="https://img.shields.io/badge/medium-%2312100E.svg?&style=for-the-badge&logo=medium&logoColor=white" /></a>
+<a href="https://twitter.com/intent/follow?screen_name=es_alizadeh&tw_p=followbutton" target="_blank"><img alt="Twitter" src="https://img.shields.io/badge/twitter-%231DA1F2.svg?&style=for-the-badge&logo=twitter&logoColor=white" /></a>
 
 <a href="https://www.buymeacoffee.com/ealizadeh" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
