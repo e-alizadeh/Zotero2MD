@@ -1,7 +1,5 @@
-import json
 from argparse import ArgumentParser
-from pathlib import Path
-from typing import Dict, Optional, Union
+from typing import Union
 
 from pyzotero.zotero import Zotero
 
@@ -23,7 +21,7 @@ args = vars(parser.parse_args())
 
 
 def generate_annotations_for_all_items(
-    zotero_client: Zotero, output_params: Optional[Union[Dict, None]] = None
+    zotero_client: Zotero, params_filepath: Union[str, None] = None
 ) -> None:
     highlights = group_annotations_by_parent_file(
         retrieve_all_annotations(zotero_client)
@@ -34,7 +32,7 @@ def generate_annotations_for_all_items(
         print(f"File {i + 1} of {len(highlights)} is under process ...")
         item = ItemAnnotations(
             zotero_client=zotero_client,
-            md_params=output_params,
+            params_filepath=params_filepath,
             item_annotations=highlights[item_key],
             item_key=item_key,
         )
@@ -58,11 +56,6 @@ if __name__ == "__main__":
         api_key=args["zotero_key"],
     )
 
-    if args.get("config_filepath", None):
-        config_filepath = Path(args["config_filepath"])
-        with open(config_filepath, "r") as f:
-            params = json.load(f)
-    else:
-        params = None
-
-    generate_annotations_for_all_items(zotero_client, output_params=params)
+    generate_annotations_for_all_items(
+        zotero_client, params_filepath=args.get("config_filepath", None)
+    )

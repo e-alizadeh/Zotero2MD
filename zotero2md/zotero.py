@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 from typing import Dict, List, Tuple, Union
 
@@ -12,14 +13,16 @@ _OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 
 class ZoteroItemBase:
-    def __init__(self, zotero_client: Zotero, md_params: Dict = None):
+    def __init__(self, zotero_client: Zotero, params_filepath: Union[str, None] = None):
         self.zotero = zotero_client
 
         # Load output configurations used for generating markdown files.
         self.md_config = default_params
 
-        if md_params:
-            self.md_config = {**self.md_config, **md_params}
+        if params_filepath:
+            with open(Path(params_filepath), "r") as f:
+                params = json.load(f)
+            self.md_config = {**self.md_config, **params}
 
     def get_item_metadata(self, item_details: Dict) -> Dict:
         if "parentItem" in item_details["data"]:
@@ -82,11 +85,11 @@ class ItemAnnotations(ZoteroItemBase):
     def __init__(
         self,
         zotero_client: Zotero,
-        md_params: Union[Dict, None],
         item_annotations: List[Dict],
         item_key: str,
+        params_filepath: Union[str, None] = None,
     ):
-        super().__init__(zotero_client, md_params)
+        super().__init__(zotero_client, params_filepath)
         self.item_annotations = item_annotations
         self.item_key = item_key
         self.item_details = self.zotero.item(self.item_key)
