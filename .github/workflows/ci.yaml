@@ -40,7 +40,7 @@ jobs:
         run: echo "DATE=$(date +'%Y%m%d')" >> $GITHUB_ENV
 
       - name: 🗄️ Set up Cache for conda environment
-      - uses: actions/cache@v2
+        uses: actions/cache@v2
         with:
           path: /usr/share/miniconda3/envs/zt2md
           key: linux-64-conda-${{ hashFiles('dev-env.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
