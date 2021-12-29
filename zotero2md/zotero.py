@@ -3,6 +3,7 @@ from os import environ
 from pathlib import Path
 from typing import Dict, List, Tuple, Union
 
+from markdownify import markdownify
 from pyzotero.zotero import Zotero
 from pyzotero.zotero_errors import ParamNotPassed, UnsupportedParams
 from snakemd import Document, MDList, Paragraph
@@ -15,7 +16,7 @@ _OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def get_zotero_client(
-    user_id: str = None, api_key: str = None, library_type: str = "user"
+    library_id: str = None, api_key: str = None, library_type: str = "user"
 ) -> Zotero:
     """Create a Zotero client object from Pyzotero library
 
@@ -23,8 +24,8 @@ def get_zotero_client(
 
     Parameters
     ----------
-    user_id: str
-        If not passed, then it looks for `ZOTERO_USER_ID` in the environment variables.
+    library_id: str
+        If not passed, then it looks for `ZOTERO_LIBRARY_ID` in the environment variables.
     api_key: str
         If not passed, then it looks for `ZOTERO_KEY` in the environment variables.
     library_type: str ['user', 'group']
@@ -37,13 +38,13 @@ def get_zotero_client(
         a Zotero client object
     """
 
-    if user_id is None:
+    if library_id is None:
         try:
-            user_id = environ["ZOTERO_USER_ID"]
+            library_id = environ["ZOTERO_LIBRARY_ID"]
         except KeyError:
             raise ParamNotPassed(
-                "No value for user_id is found. "
-                "You can set it as an environment variable `ZOTERO_USER_ID` or use `user_id` to set it."
+                "No value for library_id is found. "
+                "You can set it as an environment variable `ZOTERO_LIBRARY_ID` or use `library_id` to set it."
             )
 
     if api_key is None:
@@ -61,15 +62,23 @@ def get_zotero_client(
         raise UnsupportedParams("library_type value can either be 'user' or 'group'.")
 
     return Zotero(
-        library_id=user_id,
+        library_id=library_id,
         library_type=library_type,
         api_key=api_key,
     )
 
 
 class ZoteroItemBase:
-    def __init__(self, zotero_client: Zotero, params_filepath: Union[str, None] = None):
+    def __init__(
+        self,
+        zotero_client: Zotero,
+        item_key: str,
+        params_filepath: Union[str, None] = None,
+    ):
         self.zotero = zotero_client
+        self.item_key = item_key
+        self.item_details = self.zotero.item(self.item_key)
+        self.parent_item_key = self.item_details["data"].get("parentItem", None)
 
         # Load output configurations used for generating markdown files.
         self.md_config = default_params
@@ -79,9 +88,9 @@ class ZoteroItemBase:
                 params = json.load(f)
             self.md_config = {**self.md_config, **params}
 
-    def get_item_metadata(self, item_details: Dict) -> Dict:
-        if "parentItem" in item_details["data"]:
-            top_parent_item = self.zotero.item(item_details["data"]["parentItem"])
+    def get_item_metadata(self) -> Dict:
+        if self.parent_item_key:
+            top_parent_item = self.zotero.item(self.parent_item_key)
             data = top_parent_item["data"]
             metadata = {
                 "title": data["title"],
@@ -93,7 +102,7 @@ class ZoteroItemBase:
                 "tags": data["tags"],
             }
         else:
-            data = item_details["data"]
+            data = self.item_details["data"]
             metadata = {
                 "title": data["title"],
                 "tags": data["tags"],
@@ -136,18 +145,31 @@ class ZoteroItemBase:
         return output
 
 
-class ItemAnnotations(ZoteroItemBase):
+class ItemAnnotationsAndNotes(ZoteroItemBase):
     def __init__(
         self,
         zotero_client: Zotero,
-        item_annotations: List[Dict],
         item_key: str,
+        item_annotations: List[Dict] = None,
+        item_notes: List[Dict] = None,
         params_filepath: Union[str, None] = None,
     ):
-        super().__init__(zotero_client, params_filepath)
+        """
+        Assumptions
+        -----------
+        item_annotations and item_notes belong to the same Zotero item!
+
+        Parameters
+        ----------
+        zotero_client
+        item_key
+        item_annotations
+        item_notes
+        params_filepath
+        """
+        super().__init__(zotero_client, item_key, params_filepath)
         self.item_annotations = item_annotations
-        self.item_key = item_key
-        self.item_details = self.zotero.item(self.item_key)
+        self.item_notes = item_notes
 
         self.doc = Document(
             name="initial_filename"
@@ -203,6 +225,31 @@ class ItemAnnotations(ZoteroItemBase):
         self.doc.add_header(level=1, text="Metadata")
         self.doc.add_element(MDList(self.format_metadata(metadata)))
 
+    def format_note(self, note) -> Tuple[str, MDList]:
+        data = note["data"]
+        tags = data["tags"]
+
+        md_note = markdownify(data["note"])
+        note_sub_bullet = []
+
+        if tags:
+            note_sub_bullet.append(self.format_tags(tags))
+
+        return md_note, MDList(note_sub_bullet)
+
+    def create_notes_section(self, notes: List) -> None:
+        self.doc.add_header(level=1, text="Notes")
+        annots = []
+        for note in notes:
+            formatted_note = self.format_note(note)
+            if isinstance(formatted_note, tuple):
+                annots.append(formatted_note[0])
+                annots.append(formatted_note[1])
+            else:
+                annots.append(formatted_note)
+
+        self.doc.add_element(MDList(annots))
+
     def create_annotations_section(self, annotations: List) -> None:
         """Generate the annotation sections (titled "Highlights")
         In Zotero, an annotation is a highlighted text with the possibility of having related comment and tag(s).
@@ -239,12 +286,15 @@ class ItemAnnotations(ZoteroItemBase):
             Output (filename, item_key) of failed markdown files to compile.
 
         """
-        metadata = self.get_item_metadata(self.item_details)
+        metadata = self.get_item_metadata()
         title = metadata["title"]
 
         self.doc.add_header(title, level=1)
         self.create_metadata_section(metadata)
-        self.create_annotations_section(self.item_annotations)
+        if self.item_notes:
+            self.create_notes_section(self.item_notes)
+        if self.item_annotations:
+            self.create_annotations_section(self.item_annotations)
 
         output_filename = sanitize_filename(title) + ".md"
         try:
