@@ -21,7 +21,7 @@ classifiers = [
     "Topic :: Text Processing :: Markup :: Markdown",
     "Topic :: Utilities",
     "Typing :: Typed",
-    "Operating System :: OS Independent"
+    "Development Status :: 3 - Alpha"
 ]
 
 

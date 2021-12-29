@@ -36,10 +36,11 @@ jobs:
           auto-activate-base: false
           use-mamba: true
 
-      - name: Set cache date
+      - name: 📅 Set cache date
         run: echo "DATE=$(date +'%Y%m%d')" >> $GITHUB_ENV
 
-      - uses: actions/cache@v2
+      - name: 🗄️ Set up Cache for conda environment
+        uses: actions/cache@v2
         with:
           path: /usr/share/miniconda3/envs/zt2md
           key: linux-64-conda-${{ hashFiles('dev-env.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
@@ -71,7 +72,7 @@ jobs:
         with:
           python-version: 3.8
 
-      - name: Publish Package (via Semantic Release)
+      - name: 📤 Publish Package (via Semantic Release)
         run: |
           pip install python-semantic-release
           git config user.name github-actions

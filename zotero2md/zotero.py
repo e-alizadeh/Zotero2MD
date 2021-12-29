@@ -1,7 +1,10 @@
+import json
+from os import environ
 from pathlib import Path
 from typing import Dict, List, Tuple, Union
 
 from pyzotero.zotero import Zotero
+from pyzotero.zotero_errors import ParamNotPassed, UnsupportedParams
 from snakemd import Document, MDList, Paragraph
 
 from zotero2md import default_params
@@ -11,15 +14,70 @@ _OUTPUT_DIR = Path("zotero_output")
 _OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 
+def get_zotero_client(
+    user_id: str = None, api_key: str = None, library_type: str = "user"
+) -> Zotero:
+    """Create a Zotero client object from Pyzotero library
+
+    Zotero userID and Key are available
+
+    Parameters
+    ----------
+    user_id: str
+        If not passed, then it looks for `ZOTERO_USER_ID` in the environment variables.
+    api_key: str
+        If not passed, then it looks for `ZOTERO_KEY` in the environment variables.
+    library_type: str ['user', 'group']
+        'user': to access your Zotero library
+        'group': to access a shared group library
+
+    Returns
+    -------
+    Zotero
+        a Zotero client object
+    """
+
+    if user_id is None:
+        try:
+            user_id = environ["ZOTERO_USER_ID"]
+        except KeyError:
+            raise ParamNotPassed(
+                "No value for user_id is found. "
+                "You can set it as an environment variable `ZOTERO_USER_ID` or use `user_id` to set it."
+            )
+
+    if api_key is None:
+        try:
+            api_key = environ["ZOTERO_KEY"]
+        except KeyError:
+            raise ParamNotPassed(
+                "No value for api_key is found. "
+                "You can set it as an environment variable `ZOTERO_KEY` or use `api_key` to set it."
+            )
+
+    if library_type is None:
+        library_type = environ.get("LIBRARY_TYPE", "user")
+    elif library_type not in ["user", "group"]:
+        raise UnsupportedParams("library_type value can either be 'user' or 'group'.")
+
+    return Zotero(
+        library_id=user_id,
+        library_type=library_type,
+        api_key=api_key,
+    )
+
+
 class ZoteroItemBase:
-    def __init__(self, zotero_client: Zotero, md_params: Dict = None):
+    def __init__(self, zotero_client: Zotero, params_filepath: Union[str, None] = None):
         self.zotero = zotero_client
 
         # Load output configurations used for generating markdown files.
         self.md_config = default_params
 
-        if md_params:
-            self.md_config = {**self.md_config, **md_params}
+        if params_filepath:
+            with open(Path(params_filepath), "r") as f:
+                params = json.load(f)
+            self.md_config = {**self.md_config, **params}
 
     def get_item_metadata(self, item_details: Dict) -> Dict:
         if "parentItem" in item_details["data"]:
@@ -82,11 +140,11 @@ class ItemAnnotations(ZoteroItemBase):
     def __init__(
         self,
         zotero_client: Zotero,
-        md_params: Union[Dict, None],
         item_annotations: List[Dict],
         item_key: str,
+        params_filepath: Union[str, None] = None,
     ):
-        super().__init__(zotero_client, md_params)
+        super().__init__(zotero_client, params_filepath)
         self.item_annotations = item_annotations
         self.item_key = item_key
         self.item_details = self.zotero.item(self.item_key)
@@ -202,3 +260,15 @@ class ItemAnnotations(ZoteroItemBase):
                 f"SKIPPING..."
             )
             return output_filename, self.item_key
+
+
+def retrieve_all_annotations(zotero_client: Zotero) -> List[Dict]:
+    print(
+        "Retrieving ALL annotations from Zotero Database. \nIt may take some time...\n"
+    )
+    return zotero_client.everything(zotero_client.items(itemType="annotation"))
+
+
+def retrieve_all_notes(zotero_client: Zotero) -> List[Dict]:
+    print("Retrieving ALL notes from Zotero Database. \nIt may take some time...\n")
+    return zotero_client.everything(zotero_client.items(itemType="note"))
