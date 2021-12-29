@@ -80,3 +80,4 @@ jobs:
           semantic-release publish
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
