@@ -8,7 +8,7 @@ from pyzotero.zotero import Zotero
 from pyzotero.zotero_errors import ParamNotPassed, UnsupportedParams
 from snakemd import Document, MDList, Paragraph
 
-from zotero2md import default_params
+from zotero2md import DEFAULT_PARAMS
 from zotero2md.utils import sanitize_filename, sanitize_tag
 
 _OUTPUT_DIR = Path("zotero_output")
@@ -81,7 +81,7 @@ class ZoteroItemBase:
         self.parent_item_key = self.item_details["data"].get("parentItem", None)
 
         # Load output configurations used for generating markdown files.
-        self.md_config = default_params
+        self.md_config = DEFAULT_PARAMS
 
         if params_filepath:
             with open(Path(params_filepath), "r") as f:
@@ -170,6 +170,7 @@ class ItemAnnotationsAndNotes(ZoteroItemBase):
         super().__init__(zotero_client, item_key, params_filepath)
         self.item_annotations = item_annotations
         self.item_notes = item_notes
+        self.failed_item: str = ""
 
         self.doc = Document(
             name="initial_filename"
@@ -277,7 +278,7 @@ class ItemAnnotationsAndNotes(ZoteroItemBase):
 
         self.doc.add_element(MDList(annots))
 
-    def generate_output(self) -> Union[None, Tuple[str, str]]:
+    def generate_output(self) -> None:
         """Generate the markdown file for a Zotero Item combining metadata, annotations
 
         Returns
@@ -301,15 +302,12 @@ class ItemAnnotationsAndNotes(ZoteroItemBase):
             with open(_OUTPUT_DIR.joinpath(output_filename), "w+") as f:
                 f.write(self.doc.render())
             print(
-                f'File "{output_filename}" (item_key="{self.item_key}") was successfully created.'
+                f'File "{output_filename}" (item_key="{self.item_key}") was successfully created.\n'
             )
-            return None
         except:
-            print(
-                f'File "{output_filename}" (item_key="{self.item_key}") is failed to generate.\n'
-                f"SKIPPING..."
-            )
-            return output_filename, self.item_key
+            msg = f'File "{output_filename}" (item_key="{self.item_key}") is failed to generate.\n'
+            print(msg + "SKIPPING...\n")
+            self.failed_item = msg
 
 
 def retrieve_all_annotations(zotero_client: Zotero) -> List[Dict]:
