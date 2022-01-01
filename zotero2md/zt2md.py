@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import Dict, List, Union
 
 from zotero2md.utils import group_by_parent_item
 from zotero2md.zotero import (
@@ -31,25 +31,32 @@ class Zotero2Markdown:
         self.failed_items: List[str] = []
 
     def run_all(self, params_filepath: Union[str, None] = None) -> None:
-        highlights = group_by_parent_item(retrieve_all_annotations(self.zotero_client))
-        notes = group_by_parent_item(retrieve_all_notes(self.zotero_client))
-        for i, item_key in enumerate(highlights.keys()):
+        annots_grouped: Dict = {}
+        notes_grouped: Dict = {}
+        if self.include_annots:
+            annots_grouped = group_by_parent_item(
+                retrieve_all_annotations(self.zotero_client)
+            )
+        if self.include_notes:
+            notes_grouped = group_by_parent_item(retrieve_all_notes(self.zotero_client))
+
+        for i, item_key in enumerate(annots_grouped.keys()):
             item = self.zotero_client.item(item_key)
             parent_item_key = item["data"].get("parentItem", None)
-            print(f"File {i + 1} of {len(highlights)} is under process ...")
+            print(f"File {i + 1} of {len(annots_grouped)} is under process ...")
             zotero_item = ItemAnnotationsAndNotes(
                 zotero_client=self.zotero_client,
                 params_filepath=params_filepath,
-                item_annotations=highlights[item_key],
-                item_notes=notes.get(parent_item_key, None),
+                item_annotations=annots_grouped[item_key],
+                item_notes=notes_grouped.get(parent_item_key, None),
                 item_key=item_key,
             )
             # del notes[parent_item_key]
 
             if zotero_item.failed_item:
-                zotero_item.generate_output()
-            else:
                 self.failed_items.append(zotero_item.failed_item)
+            else:
+                zotero_item.generate_output()
 
         # for i, item_key in enumerate(notes.keys()):
         #     print(f"File {i + 1} of {len(highlights)} is under process ...")
@@ -71,7 +78,7 @@ class Zotero2Markdown:
 
         if self.failed_items:
             print(
-                f"\n {len(self.failed_items)} markdown files (with all their annotations and notes failed to create."
+                f"\n {len(self.failed_items)} markdown files (with all their annotations and notes) failed to create."
             )
             with open(txt_filepath, "w") as f:
                 file_content = "\n".join(self.failed_items)

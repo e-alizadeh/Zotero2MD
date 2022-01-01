@@ -34,4 +34,4 @@ if __name__ == "__main__":
     )
 
     zt.run_all()
-    zt.save_failed_items_to_txt()
+    zt.save_failed_items_to_txt("failed_zotero_items.txt")

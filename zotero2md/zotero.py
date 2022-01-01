@@ -302,11 +302,11 @@ class ItemAnnotationsAndNotes(ZoteroItemBase):
             with open(_OUTPUT_DIR.joinpath(output_filename), "w+") as f:
                 f.write(self.doc.render())
             print(
-                f'File "{output_filename}" (item_key="{self.item_key}") was successfully created.'
+                f'File "{output_filename}" (item_key="{self.item_key}") was successfully created.\n'
             )
         except:
             msg = f'File "{output_filename}" (item_key="{self.item_key}") is failed to generate.\n'
-            print(msg + "SKIPPING...")
+            print(msg + "SKIPPING...\n")
             self.failed_item = msg
 
 
