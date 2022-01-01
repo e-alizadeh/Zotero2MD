@@ -170,6 +170,7 @@ class ItemAnnotationsAndNotes(ZoteroItemBase):
         super().__init__(zotero_client, item_key, params_filepath)
         self.item_annotations = item_annotations
         self.item_notes = item_notes
+        self.failed_item: str = ""
 
         self.doc = Document(
             name="initial_filename"
@@ -277,7 +278,7 @@ class ItemAnnotationsAndNotes(ZoteroItemBase):
 
         self.doc.add_element(MDList(annots))
 
-    def generate_output(self) -> Union[None, Tuple[str, str]]:
+    def generate_output(self) -> None:
         """Generate the markdown file for a Zotero Item combining metadata, annotations
 
         Returns
@@ -303,13 +304,10 @@ class ItemAnnotationsAndNotes(ZoteroItemBase):
             print(
                 f'File "{output_filename}" (item_key="{self.item_key}") was successfully created.'
             )
-            return None
         except:
-            print(
-                f'File "{output_filename}" (item_key="{self.item_key}") is failed to generate.\n'
-                f"SKIPPING..."
-            )
-            return output_filename, self.item_key
+            msg = f'File "{output_filename}" (item_key="{self.item_key}") is failed to generate.\n'
+            print(msg + "SKIPPING...")
+            self.failed_item = msg
 
 
 def retrieve_all_annotations(zotero_client: Zotero) -> List[Dict]:
