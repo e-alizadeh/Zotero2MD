@@ -36,12 +36,12 @@ After installing the library, open a Python terminal, and then execute the follo
 from zotero2md.zt2md import Zotero2Markdown
 
 zt = Zotero2Markdown(
-    zotero_key="your_zotero_key",  # Visit https://www.zotero.org/settings/keys,
+    zotero_key="your_zotero_key",  
     zotero_library_id="your_zotero_id", 
     zotero_library_type="user", # "user" (default) or "group"
-    params_filepath="", # The path to JSON file containing the custom parameters (See Section Custom Output Parameters).
-    include_annotations=True,
-    include_notes=True,
+    params_filepath="",  # [Default values provided bellow] # The path to JSON file containing the custom parameters (See Section Custom Output Parameters).
+    include_annotations=True, # Default: True
+    include_notes=True, # Default: True
 )
 zt.run_all()
 ```
@@ -52,7 +52,7 @@ item key will be saved to a txt file.
 zt.save_failed_items_to_txt("failed_zotero_items.txt")
 ```
 
-## Approach 2:
+## Approach 2
 For this approach, you need to download `output_to_md.py` script. 
 Run `python output_to_md.py -h` to get more information about all options. 
 ```shell
