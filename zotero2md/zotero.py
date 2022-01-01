@@ -8,7 +8,7 @@ from pyzotero.zotero import Zotero
 from pyzotero.zotero_errors import ParamNotPassed, UnsupportedParams
 from snakemd import Document, MDList, Paragraph
 
-from zotero2md import default_params
+from zotero2md import DEFAULT_PARAMS
 from zotero2md.utils import sanitize_filename, sanitize_tag
 
 _OUTPUT_DIR = Path("zotero_output")
@@ -81,7 +81,7 @@ class ZoteroItemBase:
         self.parent_item_key = self.item_details["data"].get("parentItem", None)
 
         # Load output configurations used for generating markdown files.
-        self.md_config = default_params
+        self.md_config = DEFAULT_PARAMS
 
         if params_filepath:
             with open(Path(params_filepath), "r") as f:
