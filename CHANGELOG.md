@@ -4,6 +4,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.2.0 (2022-01-01)
+### Feature
+* Define `Zotero2Markdown` class for easier implementation. Update failed item handling. Use Zotero2Markdown in `generate.py`. ([`1a461a5`](https://github.com/e-alizadeh/Zotero2MD/commit/1a461a569ebf17906e45b0858e84824b46d8ee00))
+
 ## v0.1.0 (2021-12-29)
 ### Feature
 * Add notes to the output. Use markdownify library to convert HTML-styled notes to markdown. ([`3b83dc8`](https://github.com/e-alizadeh/Zotero2MD/commit/3b83dc82d47198010a136b4f9a06d744256e04ce))
