@@ -7,8 +7,7 @@ The highlights are NOT saved in the PDF file unless you export the highlights in
 If you annotate your files outside the new Zotero PDF reader, this library will not work with your PDF annotations as those are not retrievable from Zotero API.
 In that case, you may want to use zotfile + mdnotes to extract the annotations and convert them into markdown files.
 
-
-**_This library is for you if you annotate (highlight + note) using the Zotero's PDF reader (including the beta version in iOs)_**
+**_This library is for you if you annotate (highlight + note) using the Zotero's PDF reader (including the Zotero iOS)_**
 
 # Installation 
 You can install the library by running 
@@ -19,13 +18,50 @@ pip install zotero2md
 Note: If you do not have pip installed on your system, you can follow the instructions [here](https://pip.pypa.io/en/stable/installation/).
 
 # Usage
+Since we have to retrieve the notes from Zotero API, the minimum requirements are:
+* **Zotero API key** [Required]: Create a new Zotero Key from [your Zotero settings](https://www.zotero.org/settings/key)
+* **Zotero personal or group ID** [Required]: 
+    * Your **personal library ID** (aka **userID**) can be found [here](https://www.zotero.org/settings/key) next to `Your userID for use in API calls is XXXXXX`.
+    * If you're using a **group library**, you can find the library ID by 
+        1. Go to `https://www.zotero.org/groups/`
+        2. Click on the interested group.
+        3. You can find the library ID from the URL link that has format like *https://www.zotero.org/groups/<group_id>/group_name*. The number between `/groups/` and `/group_name` is the libarry ID. 
+* **Zotero library type** [Optional]: *"user"* (default) if using personal library and *"group"* if using group library.
+
+Note that if you want to retrieve annotations and notes from a group, you should provide the group ID (`zotero_library_id=<group_id>`) and set the library type to group (`zotero_library_type="group"`).
+
+## Approach 1 (Recommended)
+After installing the library, open a Python terminal, and then execute the following:
+```python 
+from zotero2md.zt2md import Zotero2Markdown
+
+zt = Zotero2Markdown(
+    zotero_key="your_zotero_key",  
+    zotero_library_id="your_zotero_id", 
+    zotero_library_type="user", # "user" (default) or "group"
+    params_filepath="",  # [Default values provided bellow] # The path to JSON file containing the custom parameters (See Section Custom Output Parameters).
+    include_annotations=True, # Default: True
+    include_notes=True, # Default: True
+)
+zt.run_all()
+```
+Just to make sure that all files are created, you can run `save_failed_items_to_txt()` to ensure that no file was 
+was failed to create. If a file or more failed to create, the filename (item title) and the corresponding Zotero 
+item key will be saved to a txt file. 
+```python
+zt.save_failed_items_to_txt("failed_zotero_items.txt")
+```
+
+## Approach 2
+For this approach, you need to download `output_to_md.py` script. 
+Run `python output_to_md.py -h` to get more information about all options. 
 ```shell
-python zotero2md/generate.py <zotero_key> <zotero_id>
+python zotero2md/output_to_md.py <zotero_key> <zotero_id>
 ```
 
 For instance, assuming zotero_key=abcd and zotero_id=1234, you can simply run the following:
 ```shell
-python zotero2md/generate.py abcd 1234
+python zotero2md/output_to_md.py abcd 1234
 ```
 
 
